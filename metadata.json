@@ -1,0 +1,7 @@
+{
+  "name": "ArqEvent UNISO",
+  "description": "Sistema de Gestão de Eventos Acadêmicos para Arquitetura da UNISO.",
+  "requestFramePermissions": [
+    "camera"
+  ]
+}

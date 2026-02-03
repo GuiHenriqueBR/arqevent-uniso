@@ -1,0 +1,160 @@
+// This is your Prisma schema file
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Turno {
+  MANHA
+  NOITE
+}
+
+enum TipoUsuario {
+  ALUNO
+  ORGANIZADOR
+  PALESTRANTE
+  ADMIN
+}
+
+enum TurnoEvento {
+  TODOS
+  MANHA
+  NOITE
+}
+
+enum StatusInscricao {
+  PENDENTE
+  CONFIRMADA
+  CANCELADA
+}
+
+enum TipoCertificado {
+  PARTICIPACAO
+  PALESTRANTE
+}
+
+model Usuario {
+  id          String    @id @default(uuid())
+  ra          String    @unique
+  nome        String
+  email       String    @unique
+  telefone    String?
+  senha_hash  String
+  semestre    String?
+  turno       Turno
+  tipo        TipoUsuario @default(ALUNO)
+  ativo       Boolean   @default(true)
+  created_at  DateTime  @default(now())
+  updated_at  DateTime  @updatedAt
+
+  eventos_organizados Evento[]
+  palestras_ministradas Palestra[]
+  inscricoes_evento   InscricaoEvento[]
+  inscricoes_palestra InscricaoPalestra[]
+  presencas_lipadas   InscricaoPalestra[] @relation("ValidadorPresenca")
+  certificados        Certificado[]
+
+  @@map("usuarios")
+}
+
+model Evento {
+  id                  String      @id @default(uuid())
+  titulo              String
+  descricao           String?
+  data_inicio         DateTime    @db.Date
+  data_fim            DateTime    @db.Date
+  local               String?
+  banner_url          String?
+  carga_horaria_total Int         @default(0)
+  turno_permitido     TurnoEvento @default(TODOS)
+  vagas_totais        Int         @default(100)
+  ativo               Boolean     @default(true)
+  organizador_id      String?
+  created_at          DateTime    @default(now())
+  updated_at          DateTime    @updatedAt
+
+  organizador         Usuario?    @relation(fields: [organizador_id], references: [id])
+  palestras           Palestra[]
+  inscritos           InscricaoEvento[]
+  certificados        Certificado[]
+
+  @@map("eventos")
+}
+
+model Palestra {
+  id              String    @id @default(uuid())
+  evento_id       String
+  titulo          String
+  descricao       String?
+  data_hora_inicio DateTime
+  data_hora_fim   DateTime
+  sala            String?
+  vagas           Int       @default(50)
+  carga_horaria   Int       @default(1)
+  palestrante_id  String?
+  qr_code_hash    String?   @unique
+  created_at      DateTime  @default(now())
+
+  evento          Evento    @relation(fields: [evento_id], references: [id], onDelete: Cascade)
+  palestrante     Usuario?  @relation(fields: [palestrante_id], references: [id])
+  inscritos       InscricaoPalestra[]
+  certificados    Certificado[]
+
+  @@index([evento_id])
+  @@index([data_hora_inicio])
+  @@map("palestras")
+}
+
+model InscricaoEvento {
+  id              String            @id @default(uuid())
+  usuario_id      String
+  evento_id       String
+  data_inscricao  DateTime          @default(now())
+  status          StatusInscricao   @default(CONFIRMADA)
+
+  usuario         Usuario           @relation(fields: [usuario_id], references: [id])
+  evento          Evento            @relation(fields: [evento_id], references: [id])
+
+  @@unique([usuario_id, evento_id])
+  @@map("inscricoes_evento")
+}
+
+model InscricaoPalestra {
+  id              String    @id @default(uuid())
+  usuario_id      String
+  palestra_id     String
+  data_inscricao  DateTime  @default(now())
+  presente        Boolean   @default(false)
+  data_presenca   DateTime?
+  qr_validado_por String?
+
+  usuario         Usuario   @relation(fields: [usuario_id], references: [id])
+  palestra        Palestra  @relation(fields: [palestra_id], references: [id])
+  validador       Usuario?  @relation("ValidadorPresenca", fields: [qr_validado_por], references: [id])
+
+  @@unique([usuario_id, palestra_id])
+  @@map("inscricoes_palestra")
+}
+
+model Certificado {
+  id                String          @id @default(uuid())
+  usuario_id        String
+  palestra_id       String?
+  evento_id         String?
+  codigo_verificacao String          @unique
+  carga_horaria     Int
+  pdf_url           String?
+  emitido_em        DateTime        @default(now())
+  tipo              TipoCertificado @default(PARTICIPACAO)
+
+  usuario           Usuario         @relation(fields: [usuario_id], references: [id])
+  palestra          Palestra?       @relation(fields: [palestra_id], references: [id])
+  evento            Evento?         @relation(fields: [evento_id], references: [id])
+
+  @@map("certificados")
+}
