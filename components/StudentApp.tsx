@@ -31,7 +31,10 @@ import {
   AlertTriangle,
   Download,
   FileText,
+  Edit,
+  Award,
 } from "lucide-react";
+import ProfileEditModal from "./student/ProfileEditModal";
 
 interface StudentAppProps {
   user: User;
@@ -62,6 +65,10 @@ const StudentApp: React.FC<StudentAppProps> = ({ user, onLogout }) => {
   }>({ eventos: [], palestras: [] });
   const [avisos, setAvisos] = useState<Aviso[]>([]);
   const [dismissedAvisos, setDismissedAvisos] = useState<string[]>([]);
+
+  // Profile edit state
+  const [showProfileEdit, setShowProfileEdit] = useState(false);
+  const [currentUser, setCurrentUser] = useState(user);
 
   // Notificações state
   const [notificacoes, setNotificacoes] = useState<Notificacao[]>([]);
@@ -850,27 +857,38 @@ const StudentApp: React.FC<StudentAppProps> = ({ user, onLogout }) => {
     <div className="pb-20 p-4 sm:p-6">
       <div className="bg-white rounded-xl sm:rounded-2xl p-4 sm:p-6 shadow-sm border border-slate-100 text-center mb-4 sm:mb-6">
         <div className="w-20 h-20 sm:w-24 sm:h-24 bg-indigo-100 rounded-full mx-auto mb-3 sm:mb-4 flex items-center justify-center text-2xl sm:text-3xl font-bold text-indigo-600">
-          {user.nome.charAt(0)}
+          {currentUser.nome.charAt(0)}
         </div>
         <h2 className="text-lg sm:text-xl font-bold text-slate-800">
-          {user.nome}
+          {currentUser.nome}
         </h2>
-        <p className="text-slate-500 text-sm sm:text-base">{user.email}</p>
+        <p className="text-slate-500 text-sm sm:text-base">
+          {currentUser.email}
+        </p>
         <div className="mt-3 sm:mt-4 flex flex-wrap justify-center gap-2">
-          {user.ra && (
+          {currentUser.ra && (
             <span className="px-2 sm:px-3 py-1 bg-slate-100 rounded-full text-[10px] sm:text-xs font-medium text-slate-600">
-              RA: {user.ra}
+              RA: {currentUser.ra}
             </span>
           )}
           <span className="px-2 sm:px-3 py-1 bg-slate-100 rounded-full text-[10px] sm:text-xs font-medium text-slate-600">
-            {user.turno}
+            {currentUser.turno}
           </span>
-          {user.semestre && (
+          {currentUser.semestre && (
             <span className="px-2 sm:px-3 py-1 bg-slate-100 rounded-full text-[10px] sm:text-xs font-medium text-slate-600">
-              {user.semestre}
+              {currentUser.semestre}
             </span>
           )}
         </div>
+
+        {/* Botão Editar Perfil */}
+        <button
+          onClick={() => setShowProfileEdit(true)}
+          className="mt-4 flex items-center justify-center gap-2 mx-auto px-4 py-2 bg-indigo-50 text-indigo-600 rounded-xl font-medium hover:bg-indigo-100 active:scale-[0.98] transition-all text-sm"
+        >
+          <Edit className="w-4 h-4" />
+          Editar Perfil
+        </button>
       </div>
 
       {/* Stats */}
@@ -896,6 +914,21 @@ const StudentApp: React.FC<StudentAppProps> = ({ user, onLogout }) => {
         <LogOut className="w-4 h-4" />
         Sair da Conta
       </button>
+
+      {/* Profile Edit Modal */}
+      <ProfileEditModal
+        isOpen={showProfileEdit}
+        onClose={() => setShowProfileEdit(false)}
+        user={currentUser as any}
+        onSave={(updatedUser) => {
+          setCurrentUser({ ...currentUser, ...updatedUser });
+          setScanResult({
+            success: true,
+            message: "Perfil atualizado com sucesso!",
+          });
+          setTimeout(() => setScanResult(null), 2000);
+        }}
+      />
     </div>
   );
 

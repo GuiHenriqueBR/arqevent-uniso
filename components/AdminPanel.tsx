@@ -517,6 +517,7 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ user, onLogout }) => {
             alunos={alunos}
             loading={loadingStudents}
             onExportCSV={handleExportStudents}
+            onRefresh={loadStudents}
           />
         );
       case "announcements":

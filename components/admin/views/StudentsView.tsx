@@ -11,24 +11,29 @@ import {
   MapPin,
   Clock,
   Loader2,
+  Edit,
 } from "lucide-react";
 import { usuariosApi } from "../../../services/api";
+import UserEditModal from "../modals/UserEditModal";
 
 interface StudentsViewProps {
   alunos: any[];
   loading: boolean;
   onExportCSV: () => void;
+  onRefresh?: () => void;
 }
 
 const StudentsView: React.FC<StudentsViewProps> = ({
   alunos,
   loading,
   onExportCSV,
+  onRefresh,
 }) => {
   const [search, setSearch] = useState("");
   const [semestreFilter, setSemestreFilter] = useState("Todos");
   const [turnoFilter, setTurnoFilter] = useState("Todos");
   const [selectedStudent, setSelectedStudent] = useState<any | null>(null);
+  const [editingStudent, setEditingStudent] = useState<any | null>(null);
   const [inscricoes, setInscricoes] = useState<{
     eventos: any[];
     palestras: any[];
@@ -578,6 +583,14 @@ const StudentsView: React.FC<StudentsViewProps> = ({
 
             <div className="p-4 border-t border-slate-100 bg-white flex flex-col sm:flex-row justify-end gap-3 flex-shrink-0">
               <button
+                onClick={() => {
+                  setEditingStudent(selectedStudent);
+                }}
+                className="flex items-center justify-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm font-medium hover:bg-indigo-700 transition-colors shadow-sm"
+              >
+                <Edit className="w-4 h-4" /> Editar Usuário
+              </button>
+              <button
                 onClick={() => handleSendEmail(selectedStudent)}
                 disabled={!selectedStudent?.email}
                 className="flex items-center justify-center gap-2 px-4 py-2 border border-slate-200 bg-white rounded-lg text-slate-600 text-sm font-medium hover:bg-slate-50 hover:text-slate-900 transition-colors shadow-sm disabled:opacity-50"
@@ -588,6 +601,19 @@ const StudentsView: React.FC<StudentsViewProps> = ({
           </div>
         </div>
       )}
+
+      {/* User Edit Modal */}
+      <UserEditModal
+        isOpen={!!editingStudent}
+        onClose={() => setEditingStudent(null)}
+        user={editingStudent}
+        onSave={() => {
+          setEditingStudent(null);
+          setSelectedStudent(null);
+          onRefresh?.();
+        }}
+        mode="edit"
+      />
     </div>
   );
 };

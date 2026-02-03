@@ -97,6 +97,8 @@ export interface InscricaoPalestra {
   data_presenca?: string;
   status_presenca?: StatusPresenca;
   is_walk_in?: boolean;
+  status_fila?: "CONFIRMADO" | "LISTA_ESPERA" | "CANCELADO";
+  posicao_fila?: number | null;
 }
 
 export interface Notificacao {
@@ -540,10 +542,10 @@ export const inscricoesApi = {
     } = await supabase.auth.getUser();
     if (!user) throw new Error("Usuário não autenticado");
 
-    // Get palestra to check evento
+    // Get palestra to check evento and horários
     const { data: palestra } = await supabase
       .from("palestras")
-      .select("evento_id, vagas")
+      .select("id, evento_id, vagas, data_hora_inicio, data_hora_fim, titulo")
       .eq("id", palestraId)
       .single();
 
@@ -566,21 +568,83 @@ export const inscricoesApi = {
     // Check if already inscribed
     const { data: existing } = await supabase
       .from("inscricoes_palestra")
-      .select("id")
+      .select("id, status_fila")
       .eq("usuario_id", user.id)
       .eq("palestra_id", palestraId)
       .single();
 
-    if (existing) throw new Error("Você já está inscrito nesta palestra");
+    if (existing) {
+      if (existing.status_fila === "CANCELADO") {
+        // Reativar inscrição cancelada
+        const { data: reativada, error: reativarError } = await supabase
+          .from("inscricoes_palestra")
+          .update({ status_fila: "CONFIRMADO", status_presenca: "INSCRITO" })
+          .eq("id", existing.id)
+          .select("*, palestras(*, eventos(titulo))")
+          .single();
+        if (reativarError) throw new Error(reativarError.message);
+        return reativada;
+      }
+      throw new Error("Você já está inscrito nesta palestra");
+    }
 
-    // Check vagas
+    // ============ VERIFICAÇÃO DE CONFLITO DE HORÁRIOS ============
+    // Buscar todas as palestras em que o usuário está inscrito (confirmado)
+    const { data: minhasInscricoes } = await supabase
+      .from("inscricoes_palestra")
+      .select(
+        "palestra_id, palestras(id, titulo, data_hora_inicio, data_hora_fim)",
+      )
+      .eq("usuario_id", user.id)
+      .in("status_fila", ["CONFIRMADO", "LISTA_ESPERA"]);
+
+    if (minhasInscricoes && minhasInscricoes.length > 0) {
+      const novaInicio = new Date(palestra.data_hora_inicio);
+      const novaFim = new Date(palestra.data_hora_fim);
+
+      for (const inscricao of minhasInscricoes) {
+        const p = inscricao.palestras as any;
+        if (!p) continue;
+
+        const existenteInicio = new Date(p.data_hora_inicio);
+        const existenteFim = new Date(p.data_hora_fim);
+
+        // Verificar sobreposição de horários
+        // Conflito existe se: novaInicio < existenteFim E novaFim > existenteInicio
+        if (novaInicio < existenteFim && novaFim > existenteInicio) {
+          throw new Error(
+            `Conflito de horário! Você já está inscrito em "${p.titulo}" ` +
+              `que ocorre das ${formatTime(p.data_hora_inicio)} às ${formatTime(p.data_hora_fim)}`,
+          );
+        }
+      }
+    }
+
+    // ============ VERIFICAÇÃO DE VAGAS E LISTA DE ESPERA ============
     const { count } = await supabase
       .from("inscricoes_palestra")
       .select("*", { count: "exact", head: true })
-      .eq("palestra_id", palestraId);
+      .eq("palestra_id", palestraId)
+      .eq("status_fila", "CONFIRMADO");
 
-    if (count !== null && count >= palestra.vagas) {
-      throw new Error("Não há mais vagas disponíveis");
+    const vagasDisponiveis = count !== null && count < palestra.vagas;
+
+    // Determinar status e posição na fila
+    let statusFila: "CONFIRMADO" | "LISTA_ESPERA" = "CONFIRMADO";
+    let posicaoFila: number | null = null;
+
+    if (!vagasDisponiveis) {
+      // Não há vagas, entrar na lista de espera
+      statusFila = "LISTA_ESPERA";
+
+      // Calcular posição na fila
+      const { count: filaCount } = await supabase
+        .from("inscricoes_palestra")
+        .select("*", { count: "exact", head: true })
+        .eq("palestra_id", palestraId)
+        .eq("status_fila", "LISTA_ESPERA");
+
+      posicaoFila = (filaCount || 0) + 1;
     }
 
     const { data, error } = await supabase
@@ -591,14 +655,37 @@ export const inscricoesApi = {
         presente: false,
         status_presenca: "INSCRITO",
         is_walk_in: false,
+        status_fila: statusFila,
+        posicao_fila: posicaoFila,
       })
       .select("*, palestras(*, eventos(titulo))")
       .single();
 
     if (error) throw new Error(error.message);
 
-    // Enviar notificação de inscrição confirmada
+    // Enviar notificação apropriada
     const palestraData = data.palestras as any;
+
+    if (statusFila === "LISTA_ESPERA") {
+      await notificacoesApi
+        .enviar(user.id, "lista_espera", {
+          palestra_id: palestraId,
+          palestra_titulo: palestraData?.titulo || "",
+          posicao: posicaoFila,
+          data: formatDate(palestraData?.data_hora_inicio),
+          hora: formatTime(palestraData?.data_hora_inicio),
+        })
+        .catch(() => {});
+
+      // Retornar com informação de lista de espera
+      return {
+        ...data,
+        na_lista_espera: true,
+        posicao_fila: posicaoFila,
+        mensagem: `Você está na posição ${posicaoFila} da lista de espera`,
+      };
+    }
+
     await notificacoesApi
       .enviar(user.id, "inscricao_confirmada", {
         palestra_id: palestraId,
