@@ -1,4 +1,5 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
+import { Html5Qrcode } from "html5-qrcode";
 import { User } from "../types";
 import {
   eventosApi,
@@ -77,6 +78,7 @@ const StudentApp: React.FC<StudentAppProps> = ({ user, onLogout }) => {
 
   // QR Scanner
   const videoRef = useRef<HTMLVideoElement>(null);
+  const html5QrCodeRef = useRef<Html5Qrcode | null>(null);
   const [cameraError, setCameraError] = useState<string | null>(null);
   const [scanning, setScanning] = useState(false);
 
@@ -84,6 +86,22 @@ const StudentApp: React.FC<StudentAppProps> = ({ user, onLogout }) => {
   useEffect(() => {
     loadData();
     loadNotificacoes();
+  }, []);
+
+  // Cleanup scanner on unmount
+  useEffect(() => {
+    return () => {
+      if (html5QrCodeRef.current) {
+        try {
+          const state = html5QrCodeRef.current.getState();
+          if (state === 2) {
+            html5QrCodeRef.current.stop();
+          }
+        } catch (err) {
+          console.error("Erro ao limpar scanner:", err);
+        }
+      }
+    };
   }, []);
 
   const loadNotificacoes = async () => {
@@ -232,34 +250,59 @@ const StudentApp: React.FC<StudentAppProps> = ({ user, onLogout }) => {
   };
 
   // Camera functions
-  const startCamera = async () => {
+  const startCamera = useCallback(async () => {
     try {
       setCameraError(null);
       setScanning(true);
-      const stream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: "environment" },
-      });
 
-      if (videoRef.current) {
-        videoRef.current.srcObject = stream;
-        videoRef.current.play();
+      // Criar instância do scanner se não existir
+      if (!html5QrCodeRef.current) {
+        html5QrCodeRef.current = new Html5Qrcode("qr-reader");
       }
+
+      const qrCodeSuccessCallback = async (decodedText: string) => {
+        // Parar o scanner após ler
+        await stopCamera();
+        setShowScanner(false);
+        // Processar o QR Code lido
+        handleQrCodeScan(decodedText);
+      };
+
+      const config = {
+        fps: 10,
+        qrbox: { width: 250, height: 250 },
+        aspectRatio: 1.0,
+      };
+
+      await html5QrCodeRef.current.start(
+        { facingMode: "environment" },
+        config,
+        qrCodeSuccessCallback,
+        () => {}, // Ignorar erros de scan (quando não encontra QR)
+      );
     } catch (err: any) {
+      console.error("Erro ao iniciar câmera:", err);
       setCameraError(
         "Não foi possível acessar a câmera. Verifique as permissões.",
       );
       setScanning(false);
     }
-  };
+  }, []);
 
-  const stopCamera = () => {
-    if (videoRef.current && videoRef.current.srcObject) {
-      const tracks = (videoRef.current.srcObject as MediaStream).getTracks();
-      tracks.forEach((track) => track.stop());
-      videoRef.current.srcObject = null;
+  const stopCamera = useCallback(async () => {
+    try {
+      if (html5QrCodeRef.current) {
+        const state = html5QrCodeRef.current.getState();
+        if (state === 2) {
+          // SCANNING state
+          await html5QrCodeRef.current.stop();
+        }
+      }
+    } catch (err) {
+      console.error("Erro ao parar câmera:", err);
     }
     setScanning(false);
-  };
+  }, []);
 
   const handleQrCodeScan = async (qrData: string) => {
     try {
@@ -810,25 +853,10 @@ const StudentApp: React.FC<StudentAppProps> = ({ user, onLogout }) => {
                 <p className="text-white text-sm sm:text-base">{cameraError}</p>
               </div>
             ) : (
-              <>
-                <video
-                  ref={videoRef}
-                  className="absolute inset-0 w-full h-full object-cover"
-                  playsInline
-                  muted
-                />
-                <div className="w-48 sm:w-64 h-48 sm:h-64 border-4 border-white/50 rounded-2xl sm:rounded-3xl relative z-10 flex items-center justify-center">
-                  <div className="w-44 sm:w-60 h-44 sm:h-60 border-2 border-dashed border-white/30 rounded-xl sm:rounded-2xl animate-pulse"></div>
-                  <div className="absolute -top-1 -left-1 w-6 sm:w-8 h-6 sm:h-8 border-t-4 border-l-4 border-indigo-500 rounded-tl-lg sm:rounded-tl-xl"></div>
-                  <div className="absolute -top-1 -right-1 w-6 sm:w-8 h-6 sm:h-8 border-t-4 border-r-4 border-indigo-500 rounded-tr-lg sm:rounded-tr-xl"></div>
-                  <div className="absolute -bottom-1 -left-1 w-6 sm:w-8 h-6 sm:h-8 border-b-4 border-l-4 border-indigo-500 rounded-bl-lg sm:rounded-bl-xl"></div>
-                  <div className="absolute -bottom-1 -right-1 w-6 sm:w-8 h-6 sm:h-8 border-b-4 border-r-4 border-indigo-500 rounded-br-lg sm:rounded-br-xl"></div>
-                </div>
-              </>
+              <div className="w-full h-full flex items-center justify-center">
+                <div id="qr-reader" className="w-full max-w-sm"></div>
+              </div>
             )}
-            <div className="absolute bottom-6 sm:bottom-10 left-0 right-0 text-center text-white/80 text-sm sm:text-base">
-              Alinhe o QR Code dentro da moldura
-            </div>
           </div>
           <div className="p-4 sm:p-6 bg-black text-white">
             <button
@@ -838,8 +866,8 @@ const StudentApp: React.FC<StudentAppProps> = ({ user, onLogout }) => {
               ⚡ Simular Leitura (Teste)
             </button>
             <button
-              onClick={() => {
-                stopCamera();
+              onClick={async () => {
+                await stopCamera();
                 setShowScanner(false);
               }}
               className="w-full text-slate-400 py-2 flex items-center justify-center gap-2 text-sm sm:text-base"

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import { supabase } from "../../supabaseClient";
 import {
   Mail,
@@ -34,6 +34,13 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onLoginClick }) => {
     type: "success" | "error";
     text: string;
   } | null>(null);
+
+  const redirectUrl = useMemo(() => {
+    const envUrl = import.meta.env.VITE_SUPABASE_REDIRECT_URL as
+      | string
+      | undefined;
+    return envUrl ?? window.location.origin;
+  }, []);
 
   const formatTelefone = (value: string) => {
     const numbers = value.replace(/\D/g, "");
@@ -87,6 +94,7 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onLoginClick }) => {
             turno,
             semestre,
           },
+          emailRedirectTo: redirectUrl,
         },
       });
       if (error) throw error;
