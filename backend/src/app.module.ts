@@ -4,6 +4,7 @@ import { APP_PIPE } from "@nestjs/core";
 import { ValidationPipe } from "@nestjs/common";
 
 import { PrismaModule } from "./prisma/prisma.module";
+import { HealthController } from "./health.controller";
 import { AuthModule } from "./auth/auth.module";
 import { EventosModule } from "./eventos/eventos.module";
 import { PalestrasModule } from "./palestras/palestras.module";
@@ -24,7 +25,7 @@ import { RelatoriosModule } from "./relatorios/relatorios.module";
     CertificadosModule,
     RelatoriosModule,
   ],
-  controllers: [],
+  controllers: [HealthController],
   providers: [
     {
       provide: APP_PIPE,
