@@ -282,8 +282,15 @@ const StudentApp: React.FC<StudentAppProps> = ({ user, onLogout }) => {
       );
     } catch (err: any) {
       console.error("Erro ao iniciar câmera:", err);
+      const errName = err?.name || err?.message || "unknown";
+      const isPermission =
+        errName === "NotAllowedError" ||
+        errName === "PermissionDeniedError" ||
+        errName === "NotFoundError";
       setCameraError(
-        "Não foi possível acessar a câmera. Verifique as permissões.",
+        isPermission
+          ? "Permissão de câmera negada ou nenhuma câmera encontrada. Verifique as permissões do navegador."
+          : "Não foi possível iniciar a câmera. Tente novamente.",
       );
       setScanning(false);
     }
@@ -303,6 +310,17 @@ const StudentApp: React.FC<StudentAppProps> = ({ user, onLogout }) => {
     }
     setScanning(false);
   }, []);
+
+  // Iniciar/parar câmera quando o scanner abre/fecha
+  useEffect(() => {
+    if (showScanner) {
+      const timer = setTimeout(() => {
+        startCamera();
+      }, 0);
+      return () => clearTimeout(timer);
+    }
+    stopCamera();
+  }, [showScanner, startCamera, stopCamera]);
 
   const handleQrCodeScan = async (qrData: string) => {
     try {
@@ -835,7 +853,6 @@ const StudentApp: React.FC<StudentAppProps> = ({ user, onLogout }) => {
           <button
             onClick={() => {
               setShowScanner(true);
-              startCamera();
             }}
             className="bg-indigo-600 text-white w-full max-w-xs py-3 sm:py-4 rounded-xl font-bold text-base sm:text-lg shadow-lg hover:bg-indigo-700 active:scale-[0.98] transition-all flex items-center justify-center gap-2"
           >
