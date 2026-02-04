@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from "react";
-import { supabase } from "../../supabaseClient";
+import { supabase, isSupabaseConfigured } from "../../supabaseClient";
 import {
   Mail,
   Lock,
@@ -75,6 +75,14 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onLoginClick }) => {
       setMessage({
         type: "error",
         text: "A senha deve ter pelo menos 6 caracteres.",
+      });
+      return;
+    }
+
+    if (!isSupabaseConfigured) {
+      setMessage({
+        type: "error",
+        text: "Configuração do Supabase ausente. Defina VITE_SUPABASE_URL e VITE_SUPABASE_ANON_KEY.",
       });
       return;
     }

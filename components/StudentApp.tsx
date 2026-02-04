@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import { Html5Qrcode } from "html5-qrcode";
 import { User } from "../types";
+import { isSupabaseConfigured } from "../supabaseClient";
 import {
   eventosApi,
   palestrasApi,
@@ -192,6 +193,14 @@ const StudentApp: React.FC<StudentAppProps> = ({ user, onLogout }) => {
   };
 
   const loadData = async () => {
+    if (!isSupabaseConfigured) {
+      setError(
+        "Configuração do Supabase ausente. Defina VITE_SUPABASE_URL e VITE_SUPABASE_ANON_KEY.",
+      );
+      setLoading(false);
+      return;
+    }
+
     setLoading(true);
     setError(null);
     try {

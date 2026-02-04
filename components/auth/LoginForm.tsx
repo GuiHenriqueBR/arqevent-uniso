@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { supabase } from "../../supabaseClient";
+import { supabase, isSupabaseConfigured } from "../../supabaseClient";
 import { Mail, Lock, Eye, EyeOff, Loader2, AlertCircle } from "lucide-react";
 import AuthLayout from "./AuthLayout";
 
@@ -20,6 +20,12 @@ const LoginForm: React.FC<LoginFormProps> = ({
 
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!isSupabaseConfigured) {
+      setMessage(
+        "Configuração do Supabase ausente. Defina VITE_SUPABASE_URL e VITE_SUPABASE_ANON_KEY.",
+      );
+      return;
+    }
     setLoading(true);
     setMessage(null);
     try {

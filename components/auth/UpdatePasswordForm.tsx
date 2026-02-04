@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { supabase } from "../../supabaseClient";
+import { supabase, isSupabaseConfigured } from "../../supabaseClient";
 import {
   Lock,
   Eye,
@@ -27,6 +27,13 @@ const UpdatePasswordForm: React.FC<UpdatePasswordFormProps> = ({
 
   const handleUpdatePassword = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!isSupabaseConfigured) {
+      setMessage({
+        type: "error",
+        text: "Configuração do Supabase ausente. Defina VITE_SUPABASE_URL e VITE_SUPABASE_ANON_KEY.",
+      });
+      return;
+    }
     if (password.length < 6) {
       setMessage({
         type: "error",

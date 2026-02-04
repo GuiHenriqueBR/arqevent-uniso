@@ -3,7 +3,7 @@ import { UserType, User } from "./types";
 import StudentApp from "./components/StudentApp";
 import AdminPanel from "./components/AdminPanel";
 import AuthScreen from "./components/AuthScreen";
-import { supabase } from "./supabaseClient";
+import { supabase, isSupabaseConfigured } from "./supabaseClient";
 
 interface ProfileRow {
   id: string;
@@ -80,6 +80,10 @@ const App: React.FC = () => {
 
   useEffect(() => {
     const init = async () => {
+      if (!isSupabaseConfigured) {
+        setLoading(false);
+        return;
+      }
       const { data } = await supabase.auth.getSession();
       const session = data.session;
       if (session?.user?.id) {
@@ -92,12 +96,22 @@ const App: React.FC = () => {
 
     const { data: authListener } = supabase.auth.onAuthStateChange(
       async (_event, session) => {
+        if (!isSupabaseConfigured) {
+          setCurrentUser(null);
+          setLoading(false);
+          return;
+        }
+
+        setLoading(true);
+
         if (!session?.user?.id) {
           setCurrentUser(null);
+          setLoading(false);
           return;
         }
 
         await loadProfile(session.user.id, session.user.email);
+        setLoading(false);
       },
     );
 
@@ -128,6 +142,23 @@ const App: React.FC = () => {
     return (
       <div className="min-h-screen bg-slate-50 flex items-center justify-center text-slate-500">
         Carregando...
+      </div>
+    );
+  }
+
+  if (!isSupabaseConfigured) {
+    return (
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center p-6">
+        <div className="max-w-lg text-center bg-white shadow-sm rounded-2xl p-6 border border-slate-200">
+          <h1 className="text-lg font-semibold text-slate-800 mb-2">
+            Configuração do Supabase ausente
+          </h1>
+          <p className="text-sm text-slate-600">
+            Defina <strong>VITE_SUPABASE_URL</strong> e
+            <strong> VITE_SUPABASE_ANON_KEY</strong> no ambiente de implantação
+            para habilitar o login.
+          </p>
+        </div>
       </div>
     );
   }
