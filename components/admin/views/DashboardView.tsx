@@ -9,7 +9,7 @@ import {
   ResponsiveContainer,
   Legend,
 } from "recharts";
-import { Calendar, Users, Award, GraduationCap, Loader2 } from "lucide-react";
+import { Calendar, Users, Award, GraduationCap, Loader2, AlertTriangle, TrendingUp, Clock } from "lucide-react";
 import { Lecture } from "../../../types";
 import { Card, CardContent, CardHeader, CardTitle } from "../ui/Card";
 import { Badge } from "../ui/Badge";
@@ -21,6 +21,9 @@ export interface DashboardStats {
   certificados: { total: number };
   presencas_hoje: number;
   presencaTurno?: { name: string; manha: number; noite: number }[];
+  palestras_sem_inscricao?: number;
+  top_palestras?: { titulo: string; inscritos: number; vagas: number }[];
+  palestras_hoje?: number;
 }
 
 interface DashboardViewProps {
@@ -133,6 +136,56 @@ const DashboardView: React.FC<DashboardViewProps> = ({
             </CardContent>
           </Card>
         ))}
+      </div>
+
+      {/* Alertas e Indicadores Rápidos */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        {/* Alerta de palestras sem inscrições */}
+        {(stats?.palestras_sem_inscricao ?? 0) > 0 && (
+          <Card className="border-l-4 border-amber-500 bg-amber-50/50">
+            <CardContent className="p-4 flex items-center gap-4">
+              <div className="bg-amber-100 p-3 rounded-lg">
+                <AlertTriangle className="w-6 h-6 text-amber-600" />
+              </div>
+              <div>
+                <p className="font-semibold text-amber-800">Atenção!</p>
+                <p className="text-sm text-amber-700">
+                  {stats?.palestras_sem_inscricao} palestra{(stats?.palestras_sem_inscricao ?? 0) > 1 ? "s" : ""} sem inscrições
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Palestras hoje */}
+        <Card className="border-l-4 border-indigo-500 bg-indigo-50/50">
+          <CardContent className="p-4 flex items-center gap-4">
+            <div className="bg-indigo-100 p-3 rounded-lg">
+              <Clock className="w-6 h-6 text-indigo-600" />
+            </div>
+            <div>
+              <p className="font-semibold text-indigo-800">Hoje</p>
+              <p className="text-sm text-indigo-700">
+                {stats?.palestras_hoje ?? 0} palestra{(stats?.palestras_hoje ?? 0) !== 1 ? "s" : ""} agendada{(stats?.palestras_hoje ?? 0) !== 1 ? "s" : ""}
+              </p>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Taxa de presença média */}
+        <Card className="border-l-4 border-emerald-500 bg-emerald-50/50">
+          <CardContent className="p-4 flex items-center gap-4">
+            <div className="bg-emerald-100 p-3 rounded-lg">
+              <TrendingUp className="w-6 h-6 text-emerald-600" />
+            </div>
+            <div>
+              <p className="font-semibold text-emerald-800">Presenças Hoje</p>
+              <p className="text-sm text-emerald-700">
+                {stats?.presencas_hoje ?? 0} confirmada{(stats?.presencas_hoje ?? 0) !== 1 ? "s" : ""}
+              </p>
+            </div>
+          </CardContent>
+        </Card>
       </div>
 
       <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">

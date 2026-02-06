@@ -35,6 +35,7 @@ const LectureModal: React.FC<LectureModalProps> = ({
     carga_horaria: 1,
     palestrante_id: "",
     palestrante_nome: "",
+    qr_expiration_seconds: 60,
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -59,6 +60,7 @@ const LectureModal: React.FC<LectureModalProps> = ({
         carga_horaria: initialData.carga_horaria,
         palestrante_id: initialData.palestrante_id || "",
         palestrante_nome: initialData.palestrante_nome || "",
+        qr_expiration_seconds: (initialData as any).qr_expiration_seconds || 60,
       });
     } else {
       // If creating, default to first event if available
@@ -74,6 +76,7 @@ const LectureModal: React.FC<LectureModalProps> = ({
         carga_horaria: 1,
         palestrante_id: "",
         palestrante_nome: "",
+        qr_expiration_seconds: 60,
       });
     }
     setError(null);
@@ -311,6 +314,31 @@ const LectureModal: React.FC<LectureModalProps> = ({
                 className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-shadow"
               />
             </div>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-slate-700 mb-1">
+              Expiração do QR Code
+            </label>
+            <select
+              value={form.qr_expiration_seconds}
+              onChange={(e) =>
+                setForm({
+                  ...form,
+                  qr_expiration_seconds: parseInt(e.target.value),
+                })
+              }
+              className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white"
+            >
+              <option value={30}>30 segundos (alta segurança)</option>
+              <option value={60}>1 minuto (recomendado)</option>
+              <option value={120}>2 minutos</option>
+              <option value={300}>5 minutos</option>
+              <option value={600}>10 minutos</option>
+            </select>
+            <p className="text-xs text-slate-500 mt-1">
+              O QR Code será regenerado automaticamente no modo projetor.
+            </p>
           </div>
 
           {error && (

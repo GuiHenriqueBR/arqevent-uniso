@@ -5,7 +5,6 @@ import {
   Users,
   Bell,
   Settings,
-  Maximize,
   X,
   LogOut,
 } from "lucide-react";
@@ -17,8 +16,7 @@ interface AdminSidebarProps {
     | "events"
     | "students"
     | "announcements"
-    | "settings"
-    | "projector";
+    | "settings";
   onChangeView: (view: any) => void;
   isOpen: boolean;
   onClose: () => void;
@@ -47,7 +45,6 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({
       badge: activeAvisosCount,
     },
     { id: "settings", label: "Configurações", icon: Settings },
-    { id: "projector", label: "Projetor", icon: Maximize },
   ]; // Removed 'as const' to allow mutable manipulation if needed
 
   return (

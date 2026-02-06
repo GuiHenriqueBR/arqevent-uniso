@@ -23,7 +23,6 @@ const EventsView = lazy(() => import("./admin/views/EventsView"));
 const StudentsView = lazy(() => import("./admin/views/StudentsView"));
 const AnnouncementsView = lazy(() => import("./admin/views/AnnouncementsView"));
 const SettingsView = lazy(() => import("./admin/views/SettingsView"));
-const ProjectorView = lazy(() => import("./admin/views/ProjectorView"));
 
 // Fallback de loading para views
 const ViewLoadingFallback = () => (
@@ -46,12 +45,7 @@ interface AdminPanelProps {
 const AdminPanel: React.FC<AdminPanelProps> = ({ user, onLogout }) => {
   // Navigation State
   const [activeView, setActiveView] = useState<
-    | "dashboard"
-    | "events"
-    | "students"
-    | "announcements"
-    | "settings"
-    | "projector"
+    "dashboard" | "events" | "students" | "announcements" | "settings"
   >("dashboard");
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
@@ -102,9 +96,6 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ user, onLogout }) => {
   >("PALESTRA");
   const [selectedPalestraDetails, setSelectedPalestraDetails] =
     useState<Palestra | null>(null);
-  const [projectorLecture, setProjectorLecture] = useState<Lecture | null>(
-    null,
-  );
 
   const [modalMode, setModalMode] = useState<"create" | "edit">("create");
 
@@ -364,12 +355,6 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ user, onLogout }) => {
     }
   };
 
-  const handleProjector = (palestra: Palestra) => {
-    // Convert to the exact type needed (Lecture vs Palestra compatibility)
-    setProjectorLecture(palestra as any);
-    setActiveView("projector");
-  };
-
   // --- Other Handlers ---
 
   const handleExportStudents = () => {
@@ -428,15 +413,6 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ user, onLogout }) => {
   // --- Render Views ---
 
   const renderContent = () => {
-    if (activeView === "projector" && projectorLecture) {
-      return (
-        <ProjectorView
-          lecture={projectorLecture}
-          onClose={() => setActiveView("events")}
-        />
-      );
-    }
-
     switch (activeView) {
       case "dashboard":
         return (
@@ -493,7 +469,6 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ user, onLogout }) => {
               setIsLectureModalOpen(true);
             }}
             onDeletePalestra={handleDeletePalestra}
-            onProjectorView={handleProjector}
             onManagePresenca={(p) => {
               setSelectedPalestra(p);
               setIsPresencaModalOpen(true);
@@ -552,16 +527,6 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ user, onLogout }) => {
         return null;
     }
   };
-
-  // If in Projector Mode, we bypass the AdminLayout to show full screen
-  if (activeView === "projector" && projectorLecture) {
-    return (
-      <ProjectorView
-        lecture={projectorLecture}
-        onClose={() => setActiveView("events")}
-      />
-    );
-  }
 
   return (
     <AdminLayout

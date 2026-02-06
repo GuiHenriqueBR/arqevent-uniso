@@ -9,7 +9,6 @@ import {
   Users,
   Edit,
   Trash2,
-  Maximize,
   AlertTriangle,
   Loader2,
   Info,
@@ -53,7 +52,6 @@ interface EventsViewProps {
   onOpenEditPalestra: (p: Palestra) => void;
   onDeletePalestra: (id: string) => void;
 
-  onProjectorView: (p: Palestra) => void;
   onManagePresenca: (p: Palestra) => void;
   onViewDetails: (p: Palestra) => void;
 }
@@ -81,7 +79,6 @@ const EventsView: React.FC<EventsViewProps> = ({
   onOpenCreatePalestra,
   onOpenEditPalestra,
   onDeletePalestra,
-  onProjectorView,
   onManagePresenca,
   onViewDetails,
 }) => {
@@ -585,13 +582,6 @@ const EventsView: React.FC<EventsViewProps> = ({
                                 <Info className="w-4 h-4" />
                               </button>
                               <button
-                                onClick={() => onProjectorView(palestra)}
-                                className="text-indigo-600 hover:bg-indigo-50 p-2 rounded-lg transition-colors border border-transparent hover:border-indigo-100"
-                                title="Projetar QR Code"
-                              >
-                                <Maximize className="w-4 h-4" />
-                              </button>
-                              <button
                                 onClick={() => onManagePresenca(palestra)}
                                 className="text-emerald-600 hover:bg-emerald-50 p-2 rounded-lg transition-colors border border-transparent hover:border-emerald-100"
                                 title="Gerenciar Frequência"
@@ -714,13 +704,6 @@ const EventsView: React.FC<EventsViewProps> = ({
                         className="text-emerald-600 border-emerald-100 hover:bg-emerald-50"
                       >
                         <Users className="w-4 h-4" />
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => onProjectorView(palestra)}
-                      >
-                        <Maximize className="w-4 h-4" />
                       </Button>
                       <Button
                         variant="outline"
