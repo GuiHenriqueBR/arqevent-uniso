@@ -1,5 +1,5 @@
 import React from "react";
-import unisoLogo from "../../imagens/uniso-universidade-de-sorocaba.webp";
+import caausLogo from "../../imagens/caaus-logo.png";
 
 interface AuthLayoutProps {
   children: React.ReactNode;
@@ -18,8 +18,8 @@ const AuthLayout: React.FC<AuthLayoutProps> = ({
         <div className="bg-gradient-to-br from-slate-50 via-white to-indigo-50 p-6 md:p-8 text-center border-b border-slate-100">
           <div className="inline-flex items-center justify-center rounded-2xl bg-white/90 backdrop-blur-sm px-6 py-4 shadow-lg shadow-slate-200/60 border border-slate-100">
             <img
-              src={unisoLogo}
-              alt="UNISO"
+              src={caausLogo}
+              alt="CAAUS"
               className="h-14 md:h-16 w-auto"
               loading="lazy"
             />
