@@ -5,7 +5,6 @@ import {
   Camera,
   AlertCircle,
   X,
-  Zap,
   Flashlight,
   FlashlightOff,
   CheckCircle2,
@@ -18,7 +17,6 @@ import { TactileButton } from "../ui/TactileButton";
 interface StudentScannerProps {
   onScan: (data: string) => void;
   onClose: () => void;
-  onSimulate?: () => void;
   scanResult?: {
     success: boolean;
     message: string;
@@ -31,7 +29,6 @@ const OFFLINE_QUEUE_KEY = "arqevent_offline_scans";
 const StudentScanner: React.FC<StudentScannerProps> = ({
   onScan,
   onClose,
-  onSimulate,
   scanResult,
 }) => {
   const [isActive, setIsActive] = useState(false);
@@ -333,17 +330,6 @@ const StudentScanner: React.FC<StudentScannerProps> = ({
           </div>
 
           <div className="p-6 bg-black text-white space-y-3">
-            {onSimulate && (
-              <TactileButton
-                variant="secondary"
-                onClick={onSimulate}
-                className="w-full bg-slate-800 text-white hover:bg-slate-700 border-none justify-center"
-              >
-                <Zap className="w-4 h-4 mr-2 text-yellow-400" />
-                Simular Leitura
-              </TactileButton>
-            )}
-
             <TactileButton
               variant="ghost"
               onClick={async () => {

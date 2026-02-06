@@ -250,27 +250,6 @@ const StudentApp: React.FC<StudentAppProps> = ({ user, onLogout }) => {
     }
   };
 
-  // Simulação de Scan
-  const handleSimulateScan = async () => {
-    if (palestrasEvento.length > 0) {
-      const inscritasPalestras = minhasInscricoes.palestras.filter(
-        (p) => !p.presente,
-      );
-      if (inscritasPalestras.length > 0) {
-        const palestra = inscritasPalestras[0];
-        try {
-          const qrInfo = await palestrasApi.getQrCode(palestra.palestra_id);
-          const qrData = JSON.parse(qrInfo.qr_data);
-          await handleQrCodeScan(JSON.stringify(qrData));
-        } catch (err: any) {
-          showStatus("error", err.message);
-        }
-      } else {
-        showStatus("error", "Inscreva-se em uma palestra/atividade primeiro");
-      }
-    }
-  };
-
   return (
     <div className="min-h-screen bg-slate-50 font-sans max-w-lg mx-auto shadow-2xl relative sm:rounded-xl sm:my-4 sm:max-h-[calc(100vh-2rem)] sm:overflow-hidden flex flex-col">
       {/* Modal de Status Global */}
@@ -335,7 +314,6 @@ const StudentApp: React.FC<StudentAppProps> = ({ user, onLogout }) => {
               <StudentScanner
                 onScan={handleQrCodeScan}
                 onClose={() => setActiveTab("home")}
-                onSimulate={handleSimulateScan}
               />
             </motion.div>
           )}

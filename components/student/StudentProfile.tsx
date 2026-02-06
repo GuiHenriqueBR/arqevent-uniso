@@ -45,7 +45,11 @@ const StudentProfile: React.FC<StudentProfileProps> = ({
   const cargaHorariaAcumulada = useMemo(() => {
     const totalMinutos = minhasInscricoes.palestras
       .filter((p) => p.presente)
-      .reduce((total, p) => total + (p.carga_horaria_minutos ?? (p.carga_horaria || 1) * 60), 0);
+      .reduce(
+        (total, p) =>
+          total + (p.carga_horaria_minutos ?? (p.carga_horaria || 1) * 60),
+        0,
+      );
     return totalMinutos;
   }, [minhasInscricoes.palestras]);
 
@@ -209,7 +213,10 @@ const StudentProfile: React.FC<StudentProfileProps> = ({
                             )
                           : "Data não registrada"}
                         {" • "}
-                        {formatMinutos(palestra.carga_horaria_minutos ?? (palestra.carga_horaria || 1) * 60)}
+                        {formatMinutos(
+                          palestra.carga_horaria_minutos ??
+                            (palestra.carga_horaria || 1) * 60,
+                        )}
                       </p>
                     </div>
                   </div>

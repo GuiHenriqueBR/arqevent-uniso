@@ -13,7 +13,12 @@ import {
   Loader2,
   Info,
 } from "lucide-react";
-import { Evento, Palestra, formatCargaHoraria, getCargaHorariaMinutos } from "../../../services/api";
+import {
+  Evento,
+  Palestra,
+  formatCargaHoraria,
+  getCargaHorariaMinutos,
+} from "../../../services/api";
 import { Button } from "../ui/Button"; // Corrected imports
 import { Badge } from "../ui/Badge";
 
@@ -92,7 +97,10 @@ const EventsView: React.FC<EventsViewProps> = ({
   const sumVagas = (items: Palestra[]) =>
     items.reduce((sum, p) => sum + (p.vagas || 0), 0);
   const sumCarga = (items: Palestra[]) => {
-    const totalMinutos = items.reduce((sum, p) => sum + getCargaHorariaMinutos(p), 0);
+    const totalMinutos = items.reduce(
+      (sum, p) => sum + getCargaHorariaMinutos(p),
+      0,
+    );
     if (totalMinutos < 60) return `${totalMinutos}min`;
     const horas = Math.floor(totalMinutos / 60);
     const mins = totalMinutos % 60;
