@@ -9,7 +9,16 @@ import {
   ResponsiveContainer,
   Legend,
 } from "recharts";
-import { Calendar, Users, Award, GraduationCap, Loader2, AlertTriangle, TrendingUp, Clock } from "lucide-react";
+import {
+  Calendar,
+  Users,
+  Award,
+  GraduationCap,
+  Loader2,
+  AlertTriangle,
+  TrendingUp,
+  Clock,
+} from "lucide-react";
 import { Lecture } from "../../../types";
 import { Card, CardContent, CardHeader, CardTitle } from "../ui/Card";
 import { Badge } from "../ui/Badge";
@@ -150,7 +159,9 @@ const DashboardView: React.FC<DashboardViewProps> = ({
               <div>
                 <p className="font-semibold text-amber-800">Atenção!</p>
                 <p className="text-sm text-amber-700">
-                  {stats?.palestras_sem_inscricao} palestra{(stats?.palestras_sem_inscricao ?? 0) > 1 ? "s" : ""} sem inscrições
+                  {stats?.palestras_sem_inscricao} palestra
+                  {(stats?.palestras_sem_inscricao ?? 0) > 1 ? "s" : ""} sem
+                  inscrições
                 </p>
               </div>
             </CardContent>
@@ -166,7 +177,9 @@ const DashboardView: React.FC<DashboardViewProps> = ({
             <div>
               <p className="font-semibold text-indigo-800">Hoje</p>
               <p className="text-sm text-indigo-700">
-                {stats?.palestras_hoje ?? 0} palestra{(stats?.palestras_hoje ?? 0) !== 1 ? "s" : ""} agendada{(stats?.palestras_hoje ?? 0) !== 1 ? "s" : ""}
+                {stats?.palestras_hoje ?? 0} palestra
+                {(stats?.palestras_hoje ?? 0) !== 1 ? "s" : ""} agendada
+                {(stats?.palestras_hoje ?? 0) !== 1 ? "s" : ""}
               </p>
             </div>
           </CardContent>
@@ -181,7 +194,8 @@ const DashboardView: React.FC<DashboardViewProps> = ({
             <div>
               <p className="font-semibold text-emerald-800">Presenças Hoje</p>
               <p className="text-sm text-emerald-700">
-                {stats?.presencas_hoje ?? 0} confirmada{(stats?.presencas_hoje ?? 0) !== 1 ? "s" : ""}
+                {stats?.presencas_hoje ?? 0} confirmada
+                {(stats?.presencas_hoje ?? 0) !== 1 ? "s" : ""}
               </p>
             </div>
           </CardContent>
@@ -243,6 +257,82 @@ const DashboardView: React.FC<DashboardViewProps> = ({
           </CardContent>
         </Card>
 
+        {/* Top Palestras Populares */}
+        <Card className="backdrop-blur-sm bg-white/90 shadow-sm flex flex-col h-full">
+          <CardHeader>
+            <CardTitle className="text-lg font-bold text-slate-800 flex items-center gap-2">
+              <TrendingUp className="w-5 h-5 text-indigo-500" />
+              Top Palestras Populares
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="flex-1 overflow-auto">
+            <div className="space-y-3">
+              {!stats?.top_palestras || stats.top_palestras.length === 0 ? (
+                <div className="text-center py-8 text-slate-500">
+                  <TrendingUp className="w-12 h-12 mx-auto mb-3 opacity-30" />
+                  <p>Nenhuma inscrição ainda.</p>
+                </div>
+              ) : (
+                stats.top_palestras.map((palestra, index) => {
+                  const percentual =
+                    palestra.vagas > 0
+                      ? Math.round((palestra.inscritos / palestra.vagas) * 100)
+                      : 0;
+                  return (
+                    <div
+                      key={index}
+                      className="flex items-center gap-3 p-3 bg-slate-50/50 hover:bg-slate-50 rounded-lg transition-colors border border-slate-100"
+                    >
+                      <div
+                        className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-white ${
+                          index === 0
+                            ? "bg-amber-500"
+                            : index === 1
+                              ? "bg-slate-400"
+                              : index === 2
+                                ? "bg-amber-700"
+                                : "bg-slate-300"
+                        }`}
+                      >
+                        {index + 1}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="font-medium text-slate-800 truncate text-sm">
+                          {palestra.titulo}
+                        </p>
+                        <div className="flex items-center gap-2 mt-1">
+                          <div className="flex-1 h-2 bg-slate-200 rounded-full overflow-hidden">
+                            <div
+                              className={`h-full rounded-full transition-all ${
+                                percentual >= 90
+                                  ? "bg-red-500"
+                                  : percentual >= 70
+                                    ? "bg-amber-500"
+                                    : "bg-emerald-500"
+                              }`}
+                              style={{ width: `${Math.min(percentual, 100)}%` }}
+                            />
+                          </div>
+                          <span className="text-xs text-slate-500 whitespace-nowrap">
+                            {palestra.inscritos}/{palestra.vagas}
+                          </span>
+                        </div>
+                      </div>
+                      {percentual >= 90 && (
+                        <Badge variant="destructive" className="text-xs">
+                          Lotando
+                        </Badge>
+                      )}
+                    </div>
+                  );
+                })
+              )}
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
         {/* Recent Lectures */}
         <Card className="backdrop-blur-sm bg-white/90 shadow-sm flex flex-col h-full">
           <CardHeader>

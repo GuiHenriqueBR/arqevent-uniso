@@ -1,6 +1,17 @@
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import { User } from "../../types";
-import { Edit, LogOut, Award, Calendar } from "lucide-react";
+import {
+  Edit,
+  LogOut,
+  Award,
+  Calendar,
+  Clock,
+  CheckCircle,
+  XCircle,
+  ChevronDown,
+  ChevronUp,
+  Download,
+} from "lucide-react";
 import ProfileEditModal from "./ProfileEditModal";
 import { AnimatedCard } from "../ui/AnimatedCard";
 import { TactileButton } from "../ui/TactileButton";
@@ -19,6 +30,19 @@ const StudentProfile: React.FC<StudentProfileProps> = ({
   onUpdateUser,
 }) => {
   const [showEditRef, setShowEditRef] = useState(false);
+  const [showHistorico, setShowHistorico] = useState(false);
+
+  // Calcular carga horária acumulada
+  const cargaHorariaAcumulada = useMemo(() => {
+    return minhasInscricoes.palestras
+      .filter((p) => p.presente)
+      .reduce((total, p) => total + (p.carga_horaria || 1), 0);
+  }, [minhasInscricoes.palestras]);
+
+  // Palestras com presença confirmada
+  const palestrasPresentes = useMemo(() => {
+    return minhasInscricoes.palestras.filter((p) => p.presente);
+  }, [minhasInscricoes.palestras]);
 
   return (
     <div className="pb-20 p-4 sm:p-6 space-y-6">
@@ -55,7 +79,7 @@ const StudentProfile: React.FC<StudentProfileProps> = ({
         </TactileButton>
       </AnimatedCard>
 
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-3 gap-3">
         <AnimatedCard
           className="p-4 text-center border-none shadow-sm"
           disableHover
@@ -85,7 +109,101 @@ const StudentProfile: React.FC<StudentProfileProps> = ({
             Presenças
           </p>
         </AnimatedCard>
+
+        <AnimatedCard
+          className="p-4 text-center border-none shadow-sm"
+          disableHover
+        >
+          <div className="w-10 h-10 bg-amber-100 rounded-full flex items-center justify-center mx-auto mb-2">
+            <Clock className="w-5 h-5 text-amber-600" />
+          </div>
+          <p className="text-2xl font-bold text-amber-600">
+            {cargaHorariaAcumulada}h
+          </p>
+          <p className="text-xs text-slate-500 font-medium uppercase tracking-wider">
+            Horas
+          </p>
+        </AnimatedCard>
       </div>
+
+      {/* Histórico de Presenças */}
+      <AnimatedCard className="shadow-sm overflow-hidden" disableHover>
+        <button
+          onClick={() => setShowHistorico(!showHistorico)}
+          className="w-full p-4 flex items-center justify-between text-left hover:bg-slate-50 transition-colors"
+        >
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 bg-purple-100 rounded-full flex items-center justify-center">
+              <Award className="w-5 h-5 text-purple-600" />
+            </div>
+            <div>
+              <h3 className="font-semibold text-slate-800">
+                Histórico de Presenças
+              </h3>
+              <p className="text-xs text-slate-500">
+                {palestrasPresentes.length} presença
+                {palestrasPresentes.length !== 1 ? "s" : ""} confirmada
+                {palestrasPresentes.length !== 1 ? "s" : ""}
+              </p>
+            </div>
+          </div>
+          {showHistorico ? (
+            <ChevronUp className="w-5 h-5 text-slate-400" />
+          ) : (
+            <ChevronDown className="w-5 h-5 text-slate-400" />
+          )}
+        </button>
+
+        {showHistorico && (
+          <div className="border-t border-slate-100">
+            {palestrasPresentes.length === 0 ? (
+              <div className="p-6 text-center text-slate-500">
+                <XCircle className="w-12 h-12 mx-auto mb-2 opacity-30" />
+                <p>Nenhuma presença confirmada ainda.</p>
+                <p className="text-sm mt-1">
+                  Escaneie QR Codes nas palestras para registrar sua presença.
+                </p>
+              </div>
+            ) : (
+              <div className="divide-y divide-slate-100 max-h-64 overflow-y-auto">
+                {palestrasPresentes.map((palestra: any) => (
+                  <div
+                    key={palestra.id}
+                    className="p-4 flex items-center gap-3 hover:bg-slate-50"
+                  >
+                    <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center shrink-0">
+                      <CheckCircle className="w-4 h-4 text-green-600" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="font-medium text-slate-800 truncate text-sm">
+                        {palestra.titulo ||
+                          palestra.palestras?.titulo ||
+                          "Palestra"}
+                      </p>
+                      <p className="text-xs text-slate-500">
+                        {palestra.data_presenca
+                          ? new Date(palestra.data_presenca).toLocaleDateString(
+                              "pt-BR",
+                              {
+                                day: "2-digit",
+                                month: "short",
+                                year: "numeric",
+                                hour: "2-digit",
+                                minute: "2-digit",
+                              },
+                            )
+                          : "Data não registrada"}
+                        {" • "}
+                        {palestra.carga_horaria || 1}h
+                      </p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+      </AnimatedCard>
 
       <TactileButton
         variant="danger"

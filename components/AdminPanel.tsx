@@ -23,6 +23,7 @@ const EventsView = lazy(() => import("./admin/views/EventsView"));
 const StudentsView = lazy(() => import("./admin/views/StudentsView"));
 const AnnouncementsView = lazy(() => import("./admin/views/AnnouncementsView"));
 const SettingsView = lazy(() => import("./admin/views/SettingsView"));
+const ProjectorView = lazy(() => import("./admin/views/ProjectorView"));
 
 // Fallback de loading para views
 const ViewLoadingFallback = () => (
@@ -45,7 +46,12 @@ interface AdminPanelProps {
 const AdminPanel: React.FC<AdminPanelProps> = ({ user, onLogout }) => {
   // Navigation State
   const [activeView, setActiveView] = useState<
-    "dashboard" | "events" | "students" | "announcements" | "settings"
+    | "dashboard"
+    | "events"
+    | "students"
+    | "announcements"
+    | "settings"
+    | "projector"
   >("dashboard");
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
@@ -96,6 +102,9 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ user, onLogout }) => {
   >("PALESTRA");
   const [selectedPalestraDetails, setSelectedPalestraDetails] =
     useState<Palestra | null>(null);
+  const [projectorPalestra, setProjectorPalestra] = useState<Palestra | null>(
+    null,
+  );
 
   const [modalMode, setModalMode] = useState<"create" | "edit">("create");
 
@@ -477,8 +486,22 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ user, onLogout }) => {
               setSelectedPalestraDetails(p);
               setIsLectureDetailsOpen(true);
             }}
+            onProjectorView={(p) => {
+              setProjectorPalestra(p);
+              setActiveView("projector");
+            }}
           />
         );
+      case "projector":
+        return projectorPalestra ? (
+          <ProjectorView
+            lecture={projectorPalestra}
+            onClose={() => {
+              setProjectorPalestra(null);
+              setActiveView("events");
+            }}
+          />
+        ) : null;
       case "students":
         return (
           <StudentsView

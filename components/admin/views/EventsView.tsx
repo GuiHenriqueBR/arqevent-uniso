@@ -12,6 +12,7 @@ import {
   AlertTriangle,
   Loader2,
   Info,
+  Maximize,
 } from "lucide-react";
 import { Evento, Palestra } from "../../../services/api";
 import { Button } from "../ui/Button"; // Corrected imports
@@ -54,6 +55,7 @@ interface EventsViewProps {
 
   onManagePresenca: (p: Palestra) => void;
   onViewDetails: (p: Palestra) => void;
+  onProjectorView: (p: Palestra) => void;
 }
 
 const EventsView: React.FC<EventsViewProps> = ({
@@ -81,6 +83,7 @@ const EventsView: React.FC<EventsViewProps> = ({
   onDeletePalestra,
   onManagePresenca,
   onViewDetails,
+  onProjectorView,
 }) => {
   const palestrasOnly = filteredPalestras.filter(
     (p) => (p.tipo || "PALESTRA") === "PALESTRA",
@@ -582,6 +585,13 @@ const EventsView: React.FC<EventsViewProps> = ({
                                 <Info className="w-4 h-4" />
                               </button>
                               <button
+                                onClick={() => onProjectorView(palestra)}
+                                className="text-purple-600 hover:bg-purple-50 p-2 rounded-lg transition-colors border border-transparent hover:border-purple-100"
+                                title="Projetar QR Code"
+                              >
+                                <Maximize className="w-4 h-4" />
+                              </button>
+                              <button
                                 onClick={() => onManagePresenca(palestra)}
                                 className="text-emerald-600 hover:bg-emerald-50 p-2 rounded-lg transition-colors border border-transparent hover:border-emerald-100"
                                 title="Gerenciar Frequência"
@@ -688,7 +698,7 @@ const EventsView: React.FC<EventsViewProps> = ({
                         { hour: "2-digit", minute: "2-digit" },
                       )}
                     </div>
-                    <div className="grid grid-cols-5 gap-2 pt-2">
+                    <div className="grid grid-cols-6 gap-2 pt-2">
                       <Button
                         variant="outline"
                         size="sm"
@@ -696,6 +706,14 @@ const EventsView: React.FC<EventsViewProps> = ({
                         className="text-slate-600 border-slate-200 hover:bg-slate-50"
                       >
                         <Info className="w-4 h-4" />
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => onProjectorView(palestra)}
+                        className="text-purple-600 border-purple-100 hover:bg-purple-50"
+                      >
+                        <Maximize className="w-4 h-4" />
                       </Button>
                       <Button
                         variant="outline"
