@@ -79,12 +79,29 @@ export interface Palestra {
   sala?: string;
   vagas: number;
   carga_horaria: number;
+  carga_horaria_minutos?: number;
   palestrante_id?: string;
   palestrante_nome?: string;
   qr_code_hash?: string;
+  qr_expiration_seconds?: number;
   created_at: string;
   palestrante?: { nome: string };
 }
+
+// Helper para formatar carga horária
+export const formatCargaHoraria = (palestra: Palestra): string => {
+  const minutos = palestra.carga_horaria_minutos ?? palestra.carga_horaria * 60;
+  if (minutos < 60) {
+    return `${minutos}min`;
+  }
+  const horas = Math.floor(minutos / 60);
+  const mins = minutos % 60;
+  return mins > 0 ? `${horas}h ${mins}min` : `${horas}h`;
+};
+
+export const getCargaHorariaMinutos = (palestra: Palestra): number => {
+  return palestra.carga_horaria_minutos ?? palestra.carga_horaria * 60;
+};
 
 export interface InscricaoEvento {
   id: string;
@@ -348,10 +365,12 @@ export const palestrasApi = {
       sala: palestra.sala || null,
       vagas: palestra.vagas || 50,
       carga_horaria: palestra.carga_horaria || 1,
+      carga_horaria_minutos: palestra.carga_horaria_minutos || null,
       palestrante_id: palestra.palestrante_id || null,
       palestrante_nome: palestra.palestrante_nome || null,
       evento_id: eventoId,
       qr_code_hash,
+      qr_expiration_seconds: palestra.qr_expiration_seconds || 60,
     };
     console.log("[API] Dados para inserção:", insertData);
 

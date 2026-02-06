@@ -9,6 +9,7 @@ import {
   avisosApi,
   comprovantesApi,
   notificacoesApi,
+  formatCargaHoraria,
   Evento,
   Palestra,
   Aviso,
@@ -232,7 +233,7 @@ const StudentApp: React.FC<StudentAppProps> = ({ user, onLogout }) => {
             parsed.hash,
             palestraId,
           );
-          successMessage = `✅ Presença confirmada!\n${result.palestra.titulo}\n${result.palestra.carga_horaria}h`;
+          successMessage = `✅ Presença confirmada!\n${result.palestra.titulo}\n${formatCargaHoraria(result.palestra)}`;
         }
 
         showStatus("success", successMessage);

@@ -33,6 +33,8 @@ const LectureModal: React.FC<LectureModalProps> = ({
     sala: "",
     vagas: 50,
     carga_horaria: 1,
+    carga_horaria_minutos: 60,
+    carga_unidade: "minutos" as "minutos" | "horas",
     palestrante_id: "",
     palestrante_nome: "",
     qr_expiration_seconds: 60,
@@ -44,6 +46,12 @@ const LectureModal: React.FC<LectureModalProps> = ({
 
   useEffect(() => {
     if (initialData && mode === "edit") {
+      // Determinar carga horária em minutos e unidade
+      const minutos =
+        (initialData as any).carga_horaria_minutos ??
+        initialData.carga_horaria * 60;
+      const ehHoras = minutos >= 60 && minutos % 60 === 0;
+
       setForm({
         evento_id: initialData.evento_id,
         titulo: initialData.titulo,
@@ -57,7 +65,9 @@ const LectureModal: React.FC<LectureModalProps> = ({
           .slice(0, 16),
         sala: initialData.sala || "",
         vagas: initialData.vagas,
-        carga_horaria: initialData.carga_horaria,
+        carga_horaria: ehHoras ? minutos / 60 : minutos,
+        carga_horaria_minutos: minutos,
+        carga_unidade: ehHoras ? "horas" : "minutos",
         palestrante_id: initialData.palestrante_id || "",
         palestrante_nome: initialData.palestrante_nome || "",
         qr_expiration_seconds: (initialData as any).qr_expiration_seconds || 60,
@@ -74,6 +84,8 @@ const LectureModal: React.FC<LectureModalProps> = ({
         sala: "",
         vagas: 50,
         carga_horaria: 1,
+        carga_horaria_minutos: 60,
+        carga_unidade: "horas",
         palestrante_id: "",
         palestrante_nome: "",
         qr_expiration_seconds: 60,
@@ -94,10 +106,22 @@ const LectureModal: React.FC<LectureModalProps> = ({
     }, 15000);
 
     try {
+      // Calcular carga horária em minutos baseado na unidade selecionada
+      const cargaMinutos =
+        form.carga_unidade === "horas"
+          ? form.carga_horaria * 60
+          : form.carga_horaria;
+
+      const basePayload = {
+        ...form,
+        carga_horaria: Math.ceil(cargaMinutos / 60), // Manter compatibilidade (em horas)
+        carga_horaria_minutos: cargaMinutos,
+      };
+
       const payload =
         form.tipo === "ATIVIDADE"
-          ? { ...form, palestrante_id: "", palestrante_nome: "" }
-          : form;
+          ? { ...basePayload, palestrante_id: "", palestrante_nome: "" }
+          : basePayload;
       await onSubmit(payload);
       onClose();
     } catch (err: any) {
@@ -299,26 +323,41 @@ const LectureModal: React.FC<LectureModalProps> = ({
             </div>
             <div>
               <label className="block text-sm font-medium text-slate-700 mb-1">
-                Carga Horária (h)
+                Carga Horária
               </label>
-              <input
-                type="number"
-                min="1"
-                value={form.carga_horaria}
-                onChange={(e) =>
-                  setForm({
-                    ...form,
-                    carga_horaria: parseInt(e.target.value) || 1,
-                  })
-                }
-                className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-shadow"
-              />
+              <div className="flex gap-2">
+                <input
+                  type="number"
+                  min="1"
+                  value={form.carga_horaria}
+                  onChange={(e) =>
+                    setForm({
+                      ...form,
+                      carga_horaria: parseInt(e.target.value) || 1,
+                    })
+                  }
+                  className="flex-1 px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-shadow"
+                />
+                <select
+                  value={form.carga_unidade}
+                  onChange={(e) =>
+                    setForm({
+                      ...form,
+                      carga_unidade: e.target.value as "minutos" | "horas",
+                    })
+                  }
+                  className="w-24 px-2 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white text-sm"
+                >
+                  <option value="minutos">min</option>
+                  <option value="horas">horas</option>
+                </select>
+              </div>
             </div>
           </div>
 
           <div>
             <label className="block text-sm font-medium text-slate-700 mb-1">
-              Expiração do QR Code
+              Timer do QR Code (regeneração automática)
             </label>
             <select
               value={form.qr_expiration_seconds}
@@ -330,14 +369,19 @@ const LectureModal: React.FC<LectureModalProps> = ({
               }
               className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white"
             >
+              <option value={15}>15 segundos (máxima segurança)</option>
               <option value={30}>30 segundos (alta segurança)</option>
+              <option value={45}>45 segundos</option>
               <option value={60}>1 minuto (recomendado)</option>
+              <option value={90}>1 minuto e 30 segundos</option>
               <option value={120}>2 minutos</option>
+              <option value={180}>3 minutos</option>
               <option value={300}>5 minutos</option>
-              <option value={600}>10 minutos</option>
+              <option value={600}>10 minutos (baixa segurança)</option>
             </select>
             <p className="text-xs text-slate-500 mt-1">
-              O QR Code será regenerado automaticamente no modo projetor.
+              Define o intervalo para regeneração automática do QR Code durante
+              a apresentação.
             </p>
           </div>
 

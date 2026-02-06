@@ -15,6 +15,15 @@ import {
 import ProfileEditModal from "./ProfileEditModal";
 import { AnimatedCard } from "../ui/AnimatedCard";
 import { TactileButton } from "../ui/TactileButton";
+import { getCargaHorariaMinutos } from "../../services/api";
+
+// Helper para formatar minutos em formato legível
+const formatMinutos = (minutos: number): string => {
+  if (minutos < 60) return `${minutos}min`;
+  const horas = Math.floor(minutos / 60);
+  const mins = minutos % 60;
+  return mins > 0 ? `${horas}h ${mins}min` : `${horas}h`;
+};
 
 interface StudentProfileProps {
   user: User;
@@ -32,12 +41,18 @@ const StudentProfile: React.FC<StudentProfileProps> = ({
   const [showEditRef, setShowEditRef] = useState(false);
   const [showHistorico, setShowHistorico] = useState(false);
 
-  // Calcular carga horária acumulada
+  // Calcular carga horária acumulada (em minutos)
   const cargaHorariaAcumulada = useMemo(() => {
-    return minhasInscricoes.palestras
+    const totalMinutos = minhasInscricoes.palestras
       .filter((p) => p.presente)
-      .reduce((total, p) => total + (p.carga_horaria || 1), 0);
+      .reduce((total, p) => total + (p.carga_horaria_minutos ?? (p.carga_horaria || 1) * 60), 0);
+    return totalMinutos;
   }, [minhasInscricoes.palestras]);
+
+  // Carga horária formatada para exibição
+  const cargaHorariaFormatada = useMemo(() => {
+    return formatMinutos(cargaHorariaAcumulada);
+  }, [cargaHorariaAcumulada]);
 
   // Palestras com presença confirmada
   const palestrasPresentes = useMemo(() => {
@@ -118,10 +133,10 @@ const StudentProfile: React.FC<StudentProfileProps> = ({
             <Clock className="w-5 h-5 text-amber-600" />
           </div>
           <p className="text-2xl font-bold text-amber-600">
-            {cargaHorariaAcumulada}h
+            {cargaHorariaFormatada}
           </p>
           <p className="text-xs text-slate-500 font-medium uppercase tracking-wider">
-            Horas
+            Carga Horária
           </p>
         </AnimatedCard>
       </div>
@@ -194,7 +209,7 @@ const StudentProfile: React.FC<StudentProfileProps> = ({
                             )
                           : "Data não registrada"}
                         {" • "}
-                        {palestra.carga_horaria || 1}h
+                        {formatMinutos(palestra.carga_horaria_minutos ?? (palestra.carga_horaria || 1) * 60)}
                       </p>
                     </div>
                   </div>

@@ -87,18 +87,20 @@ model Evento {
 }
 
 model Palestra {
-  id              String    @id @default(uuid())
-  evento_id       String
-  titulo          String
-  descricao       String?
-  data_hora_inicio DateTime
-  data_hora_fim   DateTime
-  sala            String?
-  vagas           Int       @default(50)
-  carga_horaria   Int       @default(1)
-  palestrante_id  String?
-  qr_code_hash    String?   @unique
-  created_at      DateTime  @default(now())
+  id                    String    @id @default(uuid())
+  evento_id             String
+  titulo                String
+  descricao             String?
+  data_hora_inicio      DateTime
+  data_hora_fim         DateTime
+  sala                  String?
+  vagas                 Int       @default(50)
+  carga_horaria         Int       @default(1)
+  carga_horaria_minutos Int?
+  palestrante_id        String?
+  qr_code_hash          String?   @unique
+  qr_expiration_seconds Int       @default(60)
+  created_at            DateTime  @default(now())
 
   evento          Evento    @relation(fields: [evento_id], references: [id], onDelete: Cascade)
   palestrante     Usuario?  @relation(fields: [palestrante_id], references: [id])

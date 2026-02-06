@@ -12,9 +12,8 @@ import {
   AlertTriangle,
   Loader2,
   Info,
-  Maximize,
 } from "lucide-react";
-import { Evento, Palestra } from "../../../services/api";
+import { Evento, Palestra, formatCargaHoraria, getCargaHorariaMinutos } from "../../../services/api";
 import { Button } from "../ui/Button"; // Corrected imports
 import { Badge } from "../ui/Badge";
 
@@ -55,7 +54,6 @@ interface EventsViewProps {
 
   onManagePresenca: (p: Palestra) => void;
   onViewDetails: (p: Palestra) => void;
-  onProjectorView: (p: Palestra) => void;
 }
 
 const EventsView: React.FC<EventsViewProps> = ({
@@ -83,7 +81,6 @@ const EventsView: React.FC<EventsViewProps> = ({
   onDeletePalestra,
   onManagePresenca,
   onViewDetails,
-  onProjectorView,
 }) => {
   const palestrasOnly = filteredPalestras.filter(
     (p) => (p.tipo || "PALESTRA") === "PALESTRA",
@@ -94,8 +91,13 @@ const EventsView: React.FC<EventsViewProps> = ({
 
   const sumVagas = (items: Palestra[]) =>
     items.reduce((sum, p) => sum + (p.vagas || 0), 0);
-  const sumCarga = (items: Palestra[]) =>
-    items.reduce((sum, p) => sum + (p.carga_horaria || 0), 0);
+  const sumCarga = (items: Palestra[]) => {
+    const totalMinutos = items.reduce((sum, p) => sum + getCargaHorariaMinutos(p), 0);
+    if (totalMinutos < 60) return `${totalMinutos}min`;
+    const horas = Math.floor(totalMinutos / 60);
+    const mins = totalMinutos % 60;
+    return mins > 0 ? `${horas}h ${mins}min` : `${horas}h`;
+  };
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -503,7 +505,7 @@ const EventsView: React.FC<EventsViewProps> = ({
                               {palestra.titulo}
                             </p>
                             <p className="text-xs text-slate-500 mt-0.5">
-                              {palestra.carga_horaria}h de carga horária
+                              {formatCargaHoraria(palestra)} de carga horária
                             </p>
                             <Badge
                               variant={
@@ -583,13 +585,6 @@ const EventsView: React.FC<EventsViewProps> = ({
                                 title="Detalhes"
                               >
                                 <Info className="w-4 h-4" />
-                              </button>
-                              <button
-                                onClick={() => onProjectorView(palestra)}
-                                className="text-purple-600 hover:bg-purple-50 p-2 rounded-lg transition-colors border border-transparent hover:border-purple-100"
-                                title="Projetar QR Code"
-                              >
-                                <Maximize className="w-4 h-4" />
                               </button>
                               <button
                                 onClick={() => onManagePresenca(palestra)}
@@ -706,14 +701,6 @@ const EventsView: React.FC<EventsViewProps> = ({
                         className="text-slate-600 border-slate-200 hover:bg-slate-50"
                       >
                         <Info className="w-4 h-4" />
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => onProjectorView(palestra)}
-                        className="text-purple-600 border-purple-100 hover:bg-purple-50"
-                      >
-                        <Maximize className="w-4 h-4" />
                       </Button>
                       <Button
                         variant="outline"
