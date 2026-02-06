@@ -102,6 +102,11 @@ const StudentScanner: React.FC<StudentScannerProps> = ({
   const startCamera = useCallback(async () => {
     try {
       setError(null);
+      // Primeiro ativar para renderizar o div qr-reader
+      setIsActive(true);
+      
+      // Aguardar próximo tick para o DOM atualizar
+      await new Promise(resolve => setTimeout(resolve, 100));
 
       if (!html5QrCodeRef.current) {
         html5QrCodeRef.current = new Html5Qrcode("qr-reader");
@@ -140,12 +145,11 @@ const StudentScanner: React.FC<StudentScannerProps> = ({
         () => {}, // Ignore scan errors
       );
 
-      setIsActive(true);
-
       // Verificar suporte a lanterna após iniciar
       await checkTorchSupport();
     } catch (err: any) {
       console.error("Erro ao iniciar câmera:", err);
+      setIsActive(false);
       const errName = err?.name || err?.message || "unknown";
       const isPermission =
         errName === "NotAllowedError" ||
