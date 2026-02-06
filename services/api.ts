@@ -1,5 +1,11 @@
 import { supabase } from "../supabaseClient";
-import { jsPDF } from "jspdf";
+
+// jsPDF é carregado dinamicamente nas funções que o utilizam para reduzir bundle inicial
+type jsPDFType = import("jspdf").jsPDF;
+const loadJsPDF = async (): Promise<typeof import("jspdf").jsPDF> => {
+  const { jsPDF } = await import("jspdf");
+  return jsPDF;
+};
 
 // =====================
 // HELPER: Timeout para requisições
@@ -2010,7 +2016,8 @@ export const comprovantesApi = {
       (await configApi.get("nome_instituicao")) ||
       "Universidade de Sorocaba - UNISO";
 
-    // Gerar PDF
+    // Gerar PDF (carregado dinamicamente)
+    const jsPDF = await loadJsPDF();
     const doc = new jsPDF({
       orientation: "portrait",
       unit: "mm",
@@ -2179,7 +2186,8 @@ export const comprovantesApi = {
       (await configApi.get("nome_instituicao")) ||
       "Universidade de Sorocaba - UNISO";
 
-    // Gerar PDF
+    // Gerar PDF (carregado dinamicamente)
+    const jsPDF = await loadJsPDF();
     const doc = new jsPDF({
       orientation: "portrait",
       unit: "mm",
@@ -2330,7 +2338,8 @@ export const comprovantesApi = {
       (await configApi.get("nome_instituicao")) ||
       "Universidade de Sorocaba - UNISO";
 
-    // Gerar PDF
+    // Gerar PDF (carregado dinamicamente)
+    const jsPDF = await loadJsPDF();
     const doc = new jsPDF({
       orientation: "portrait",
       unit: "mm",

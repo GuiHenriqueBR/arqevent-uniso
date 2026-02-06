@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo, Suspense, lazy } from "react";
 import { User, Lecture } from "../types";
 import {
   eventosApi,
@@ -17,13 +17,20 @@ import {
 // Layout
 import AdminLayout from "./admin/layout/AdminLayout";
 
-// Views
-import DashboardView from "./admin/views/DashboardView";
-import EventsView from "./admin/views/EventsView";
-import StudentsView from "./admin/views/StudentsView";
-import AnnouncementsView from "./admin/views/AnnouncementsView";
-import SettingsView from "./admin/views/SettingsView";
-import ProjectorView from "./admin/views/ProjectorView";
+// Lazy load das Views para code-splitting
+const DashboardView = lazy(() => import("./admin/views/DashboardView"));
+const EventsView = lazy(() => import("./admin/views/EventsView"));
+const StudentsView = lazy(() => import("./admin/views/StudentsView"));
+const AnnouncementsView = lazy(() => import("./admin/views/AnnouncementsView"));
+const SettingsView = lazy(() => import("./admin/views/SettingsView"));
+const ProjectorView = lazy(() => import("./admin/views/ProjectorView"));
+
+// Fallback de loading para views
+const ViewLoadingFallback = () => (
+  <div className="flex items-center justify-center h-64 text-slate-500">
+    Carregando...
+  </div>
+);
 
 // Modals
 import EventModal from "./admin/modals/EventModal";
@@ -566,7 +573,7 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ user, onLogout }) => {
       setSidebarOpen={setSidebarOpen}
       avisos={avisos}
     >
-      {renderContent()}
+      <Suspense fallback={<ViewLoadingFallback />}>{renderContent()}</Suspense>
 
       {/* Modals */}
       <EventModal

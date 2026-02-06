@@ -1,9 +1,18 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState, Suspense, lazy } from "react";
 import { UserType, User } from "./types";
-import StudentApp from "./components/StudentApp";
-import AdminPanel from "./components/AdminPanel";
-import AuthScreen from "./components/AuthScreen";
 import { supabase, isSupabaseConfigured } from "./supabaseClient";
+
+// Lazy load dos componentes principais para reduzir bundle inicial
+const StudentApp = lazy(() => import("./components/StudentApp"));
+const AdminPanel = lazy(() => import("./components/AdminPanel"));
+const AuthScreen = lazy(() => import("./components/AuthScreen"));
+
+// Componente de loading para Suspense
+const LoadingFallback = () => (
+  <div className="min-h-screen bg-slate-50 flex items-center justify-center text-slate-500">
+    Carregando...
+  </div>
+);
 
 interface ProfileRow {
   id: string;
@@ -217,16 +226,22 @@ const App: React.FC = () => {
   }
 
   if (!currentUser) {
-    return <AuthScreen initialMode={authMode} />;
+    return (
+      <Suspense fallback={<LoadingFallback />}>
+        <AuthScreen initialMode={authMode} />
+      </Suspense>
+    );
   }
 
   return (
     <div className="min-h-screen bg-slate-50">
-      {currentUser.tipo === UserType.ALUNO ? (
-        <StudentApp user={currentUser} onLogout={handleLogout} />
-      ) : (
-        <AdminPanel user={currentUser} onLogout={handleLogout} />
-      )}
+      <Suspense fallback={<LoadingFallback />}>
+        {currentUser.tipo === UserType.ALUNO ? (
+          <StudentApp user={currentUser} onLogout={handleLogout} />
+        ) : (
+          <AdminPanel user={currentUser} onLogout={handleLogout} />
+        )}
+      </Suspense>
     </div>
   );
 };

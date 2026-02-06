@@ -151,14 +151,14 @@ export default defineConfig(({ mode }) => {
         output: {
           manualChunks: {
             // Vendor chunks para cache eficiente
-            "vendor-react": ["react", "react-dom"],
+            "vendor-react": ["react", "react-dom", "react-is"],
             "vendor-supabase": ["@supabase/supabase-js"],
             "vendor-charts": ["recharts"],
             "vendor-pdf": ["jspdf"],
           },
         },
       },
-      // Aumentar limite de chunk warning
+      // Limite de chunk warning
       chunkSizeWarningLimit: 600,
     },
   };

@@ -144,7 +144,7 @@ const DashboardView: React.FC<DashboardViewProps> = ({
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="h-64 sm:h-72 w-full min-h-[16rem]">
+            <div className="h-64 sm:h-72 w-full min-h-64">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={presencaChartData}>
                   <CartesianGrid
@@ -252,7 +252,7 @@ const DashboardView: React.FC<DashboardViewProps> = ({
       </div>
 
       {/* System Summary (Footer) */}
-      <div className="bg-gradient-to-r from-indigo-600 to-purple-600 rounded-xl p-6 text-white shadow-lg">
+      <div className="bg-linear-to-r from-indigo-600 to-purple-600 rounded-xl p-6 text-white shadow-lg">
         <h3 className="font-bold text-lg mb-4 opacity-90">Resumo do Sistema</h3>
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-6 text-sm">
           <div>
