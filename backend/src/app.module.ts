@@ -1,6 +1,7 @@
 import { Module } from "@nestjs/common";
 import { ConfigModule } from "@nestjs/config";
-import { APP_PIPE } from "@nestjs/core";
+import { APP_GUARD, APP_PIPE } from "@nestjs/core";
+import { ThrottlerModule, ThrottlerGuard } from "@nestjs/throttler";
 import { ValidationPipe } from "@nestjs/common";
 
 import { PrismaModule } from "./prisma/prisma.module";
@@ -16,6 +17,13 @@ import { RelatoriosModule } from "./relatorios/relatorios.module";
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
+    // Rate limiting global: 100 requisições por minuto por IP
+    ThrottlerModule.forRoot([
+      {
+        ttl: 60000, // 1 minuto
+        limit: 100, // 100 requisições
+      },
+    ]),
     PrismaModule,
     AuthModule,
     EventosModule,
@@ -34,6 +42,10 @@ import { RelatoriosModule } from "./relatorios/relatorios.module";
         forbidNonWhitelisted: true,
         transform: true,
       }),
+    },
+    {
+      provide: APP_GUARD,
+      useClass: ThrottlerGuard,
     },
   ],
 })

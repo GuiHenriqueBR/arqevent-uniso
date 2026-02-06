@@ -10,29 +10,54 @@ import { CreateEventoDto, UpdateEventoDto } from "./dto/evento.dto";
 export class EventosService {
   constructor(private prisma: PrismaService) {}
 
-  async findAll(userTurno?: string) {
-    const eventos = await this.prisma.evento.findMany({
-      where: {
-        ativo: true,
-        OR: userTurno
-          ? [
-              { turno_permitido: "TODOS" },
-              { turno_permitido: userTurno as any },
-            ]
-          : undefined,
-      },
-      include: {
-        organizador: {
-          select: { id: true, nome: true, email: true },
-        },
-        _count: {
-          select: { palestras: true, inscritos: true },
-        },
-      },
-      orderBy: { data_inicio: "asc" },
-    });
+  async findAll(userTurno?: string, page: number = 1, limit: number = 50) {
+    const skip = (page - 1) * limit;
 
-    return eventos;
+    const [eventos, total] = await Promise.all([
+      this.prisma.evento.findMany({
+        where: {
+          ativo: true,
+          OR: userTurno
+            ? [
+                { turno_permitido: "TODOS" },
+                { turno_permitido: userTurno as any },
+              ]
+            : undefined,
+        },
+        include: {
+          organizador: {
+            select: { id: true, nome: true, email: true },
+          },
+          _count: {
+            select: { palestras: true, inscritos: true },
+          },
+        },
+        orderBy: { data_inicio: "asc" },
+        skip,
+        take: limit,
+      }),
+      this.prisma.evento.count({
+        where: {
+          ativo: true,
+          OR: userTurno
+            ? [
+                { turno_permitido: "TODOS" },
+                { turno_permitido: userTurno as any },
+              ]
+            : undefined,
+        },
+      }),
+    ]);
+
+    return {
+      data: eventos,
+      pagination: {
+        page,
+        limit,
+        total,
+        totalPages: Math.ceil(total / limit),
+      },
+    };
   }
 
   async findOne(id: string) {
@@ -140,7 +165,7 @@ export class EventosService {
     return { message: "Evento excluído com sucesso" };
   }
 
-  async getInscritos(eventoId: string) {
+  async getInscritos(eventoId: string, page: number = 1, limit: number = 50) {
     const evento = await this.prisma.evento.findUnique({
       where: { id: eventoId },
     });
@@ -149,22 +174,41 @@ export class EventosService {
       throw new NotFoundException("Evento não encontrado");
     }
 
-    return this.prisma.inscricaoEvento.findMany({
-      where: { evento_id: eventoId },
-      include: {
-        usuario: {
-          select: {
-            id: true,
-            ra: true,
-            nome: true,
-            email: true,
-            telefone: true,
-            semestre: true,
-            turno: true,
+    const skip = (page - 1) * limit;
+
+    const [inscritos, total] = await Promise.all([
+      this.prisma.inscricaoEvento.findMany({
+        where: { evento_id: eventoId },
+        include: {
+          usuario: {
+            select: {
+              id: true,
+              ra: true,
+              nome: true,
+              email: true,
+              telefone: true,
+              semestre: true,
+              turno: true,
+            },
           },
         },
+        orderBy: { data_inscricao: "desc" },
+        skip,
+        take: limit,
+      }),
+      this.prisma.inscricaoEvento.count({
+        where: { evento_id: eventoId },
+      }),
+    ]);
+
+    return {
+      data: inscritos,
+      pagination: {
+        page,
+        limit,
+        total,
+        totalPages: Math.ceil(total / limit),
       },
-      orderBy: { data_inscricao: "desc" },
-    });
+    };
   }
 }

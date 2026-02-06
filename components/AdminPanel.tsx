@@ -156,43 +156,29 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ user, onLogout }) => {
       setLoadingStudents(true);
       const data = await usuariosApi.listAlunos();
 
-      setAlunos(data);
-      setLoadingStudents(false);
-      window.clearTimeout(timeoutId);
+      // OTIMIZAÇÃO: Buscar stats de todos os alunos em UMA chamada batch
+      // Antes: N chamadas para N alunos (N+1 problem)
+      // Agora: 1 chamada para todos os alunos
+      const alunoIds = data.map((aluno: any) => aluno.id);
+      const statsMap = await usuariosApi.getStatsBatch(alunoIds);
 
-      const statsResults = await Promise.allSettled(
-        data.map(async (aluno: any) => {
-          const stats = await usuariosApi.getStats(aluno.id);
-          return { id: aluno.id, stats };
-        }),
-      );
+      const alunosComStats = data.map((aluno: any) => {
+        const stats = statsMap.get(aluno.id);
+        if (!stats) return aluno;
+        return {
+          ...aluno,
+          presenca: stats.palestras_presentes ? 100 : 0,
+          totalPresencas: stats.palestras_presentes || 0,
+          cargaHoraria: stats.carga_horaria_total || 0,
+          certificados: stats.certificados || 0,
+        };
+      });
 
-      const statsMap = new Map(
-        statsResults
-          .filter(
-            (r): r is PromiseFulfilledResult<any> => r.status === "fulfilled",
-          )
-          .map((r) => [r.value.id, r.value.stats]),
-      );
-
-      setAlunos((prev) =>
-        prev.map((aluno: any) => {
-          const stats = statsMap.get(aluno.id);
-          if (!stats) return aluno;
-          return {
-            ...aluno,
-            presenca: stats?.palestras_presentes ? 100 : 0,
-            totalPresencas: stats?.palestras_presentes || 0,
-            cargaHoraria: stats?.carga_horaria_total || 0,
-            certificados: stats?.certificados || 0,
-          };
-        }),
-      );
+      setAlunos(alunosComStats);
     } catch (error) {
       console.error("Erro ao carregar alunos:", error);
-      setLoadingStudents(false);
-      window.clearTimeout(timeoutId);
     } finally {
+      setLoadingStudents(false);
       window.clearTimeout(timeoutId);
     }
   };

@@ -144,18 +144,25 @@ export class CertificadosService {
     const certificadosGerados = [];
     const erros = [];
 
+    // OTIMIZAÇÃO: Buscar TODOS os certificados existentes de uma vez
+    const usuarioIds = Array.from(presencasPorUsuario.keys());
+    const certificadosExistentes = await this.prisma.certificado.findMany({
+      where: {
+        usuario_id: { in: usuarioIds },
+        evento_id: eventoId,
+        tipo: "PARTICIPACAO",
+      },
+      select: { usuario_id: true },
+    });
+    const usuariosComCertificado = new Set(
+      certificadosExistentes.map((c) => c.usuario_id),
+    );
+
+    // Gerar certificados apenas para quem não tem
     for (const [usuarioId, data] of presencasPorUsuario) {
       try {
-        // Check if certificate already exists
-        const existingCert = await this.prisma.certificado.findFirst({
-          where: {
-            usuario_id: usuarioId,
-            evento_id: eventoId,
-            tipo: "PARTICIPACAO",
-          },
-        });
-
-        if (existingCert) {
+        // Verificar em memória (não precisa de query)
+        if (usuariosComCertificado.has(usuarioId)) {
           continue; // Skip if already has certificate
         }
 
@@ -184,40 +191,52 @@ export class CertificadosService {
           carga_horaria: cargaHorariaTotal,
           palestras_assistidas: data.palestras.length,
         });
-      } catch (error) {
+      } catch (error: any) {
         erros.push({
           usuario: data.usuario.nome,
-          erro: error.message,
+          erro: error?.message || "Erro desconhecido",
         });
       }
     }
 
-    // Generate certificates for speakers
-    for (const palestra of evento.palestras) {
-      if (palestra.palestrante_id) {
+    // OTIMIZAÇÃO: Verificar certificados de palestrantes de uma vez
+    const palestrantesIds = evento.palestras
+      .filter((p) => p.palestrante_id)
+      .map((p) => ({
+        palestrante_id: p.palestrante_id!,
+        palestra_id: p.id,
+        carga: p.carga_horaria,
+      }));
+
+    const certsPalestrantesExistentes = await this.prisma.certificado.findMany({
+      where: {
+        tipo: "PALESTRANTE",
+        palestra_id: { in: palestrantesIds.map((p) => p.palestra_id) },
+      },
+      select: { palestra_id: true, usuario_id: true },
+    });
+    const certsPalestrantesSet = new Set(
+      certsPalestrantesExistentes.map(
+        (c) => `${c.usuario_id}-${c.palestra_id}`,
+      ),
+    );
+
+    // Generate certificates for speakers (sem N+1)
+    for (const p of palestrantesIds) {
+      const key = `${p.palestrante_id}-${p.palestra_id}`;
+      if (!certsPalestrantesSet.has(key)) {
         try {
-          const existingCert = await this.prisma.certificado.findFirst({
-            where: {
-              usuario_id: palestra.palestrante_id,
-              palestra_id: palestra.id,
+          const codigoVerificacao = this.generateCodigoVerificacao();
+          await this.prisma.certificado.create({
+            data: {
+              usuario_id: p.palestrante_id,
+              evento_id: eventoId,
+              palestra_id: p.palestra_id,
+              codigo_verificacao: codigoVerificacao,
+              carga_horaria: p.carga,
               tipo: "PALESTRANTE",
             },
           });
-
-          if (!existingCert) {
-            const codigoVerificacao = this.generateCodigoVerificacao();
-
-            await this.prisma.certificado.create({
-              data: {
-                usuario_id: palestra.palestrante_id,
-                evento_id: eventoId,
-                palestra_id: palestra.id,
-                codigo_verificacao: codigoVerificacao,
-                carga_horaria: palestra.carga_horaria,
-                tipo: "PALESTRANTE",
-              },
-            });
-          }
         } catch (error) {
           // Silent fail for speaker certificates
         }

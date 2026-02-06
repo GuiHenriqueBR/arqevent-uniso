@@ -148,12 +148,15 @@ const generateQrHash = () => {
 
 // Eventos API
 export const eventosApi = {
-  list: async () => {
+  list: async (options?: { limit?: number; offset?: number }) => {
+    const { limit = 50, offset = 0 } = options || {};
+
     const { data, error } = await supabase
       .from("eventos")
       .select("*, profiles:organizador_id(nome)")
       .eq("ativo", true)
-      .order("data_inicio", { ascending: true });
+      .order("data_inicio", { ascending: true })
+      .range(offset, offset + limit - 1);
 
     if (error) throw new Error(error.message);
     return data || [];
@@ -280,22 +283,31 @@ export const eventosApi = {
 
 // Palestras API
 export const palestrasApi = {
-  list: async () => {
+  list: async (options?: { limit?: number; offset?: number }) => {
+    const { limit = 100, offset = 0 } = options || {};
+
     const { data, error } = await supabase
       .from("palestras")
       .select("*, profiles:palestrante_id(id, nome), eventos(titulo)")
-      .order("data_hora_inicio", { ascending: false });
+      .order("data_hora_inicio", { ascending: false })
+      .range(offset, offset + limit - 1);
 
     if (error) throw new Error(error.message);
     return data || [];
   },
 
-  listByEvento: async (eventoId: string) => {
+  listByEvento: async (
+    eventoId: string,
+    options?: { limit?: number; offset?: number },
+  ) => {
+    const { limit = 100, offset = 0 } = options || {};
+
     const { data, error } = await supabase
       .from("palestras")
       .select("*, profiles:palestrante_id(id, nome)")
       .eq("evento_id", eventoId)
-      .order("data_hora_inicio", { ascending: true });
+      .order("data_hora_inicio", { ascending: true })
+      .range(offset, offset + limit - 1);
 
     if (error) throw new Error(error.message);
     return data || [];
@@ -542,161 +554,82 @@ export const inscricoesApi = {
     } = await supabase.auth.getUser();
     if (!user) throw new Error("Usuário não autenticado");
 
-    // Get palestra to check evento and horários
-    const { data: palestra } = await supabase
-      .from("palestras")
-      .select("id, evento_id, vagas, data_hora_inicio, data_hora_fim, titulo")
-      .eq("id", palestraId)
-      .single();
-
-    if (!palestra) throw new Error("Palestra não encontrada");
-
-    // Check if inscribed in evento
-    const { data: inscricaoEvento } = await supabase
-      .from("inscricoes_evento")
-      .select("id")
-      .eq("usuario_id", user.id)
-      .eq("evento_id", palestra.evento_id)
-      .single();
-
-    if (!inscricaoEvento) {
-      throw new Error(
-        "Você precisa estar inscrito no evento para se inscrever nesta palestra",
-      );
-    }
-
-    // Check if already inscribed
-    const { data: existing } = await supabase
-      .from("inscricoes_palestra")
-      .select("id, status_fila")
-      .eq("usuario_id", user.id)
-      .eq("palestra_id", palestraId)
-      .single();
-
-    if (existing) {
-      if (existing.status_fila === "CANCELADO") {
-        // Reativar inscrição cancelada
-        const { data: reativada, error: reativarError } = await supabase
-          .from("inscricoes_palestra")
-          .update({ status_fila: "CONFIRMADO", status_presenca: "INSCRITO" })
-          .eq("id", existing.id)
-          .select("*, palestras(*, eventos(titulo))")
-          .single();
-        if (reativarError) throw new Error(reativarError.message);
-        return reativada;
-      }
-      throw new Error("Você já está inscrito nesta palestra");
-    }
-
-    // ============ VERIFICAÇÃO DE CONFLITO DE HORÁRIOS ============
-    // Buscar todas as palestras em que o usuário está inscrito (confirmado)
-    const { data: minhasInscricoes } = await supabase
-      .from("inscricoes_palestra")
-      .select(
-        "palestra_id, palestras(id, titulo, data_hora_inicio, data_hora_fim)",
-      )
-      .eq("usuario_id", user.id)
-      .in("status_fila", ["CONFIRMADO", "LISTA_ESPERA"]);
-
-    if (minhasInscricoes && minhasInscricoes.length > 0) {
-      const novaInicio = new Date(palestra.data_hora_inicio);
-      const novaFim = new Date(palestra.data_hora_fim);
-
-      for (const inscricao of minhasInscricoes) {
-        const p = inscricao.palestras as any;
-        if (!p) continue;
-
-        const existenteInicio = new Date(p.data_hora_inicio);
-        const existenteFim = new Date(p.data_hora_fim);
-
-        // Verificar sobreposição de horários
-        // Conflito existe se: novaInicio < existenteFim E novaFim > existenteInicio
-        if (novaInicio < existenteFim && novaFim > existenteInicio) {
-          throw new Error(
-            `Conflito de horário! Você já está inscrito em "${p.titulo}" ` +
-              `que ocorre das ${formatTime(p.data_hora_inicio)} às ${formatTime(p.data_hora_fim)}`,
-          );
-        }
-      }
-    }
-
-    // ============ VERIFICAÇÃO DE VAGAS E LISTA DE ESPERA ============
-    const { count } = await supabase
-      .from("inscricoes_palestra")
-      .select("*", { count: "exact", head: true })
-      .eq("palestra_id", palestraId)
-      .eq("status_fila", "CONFIRMADO");
-
-    const vagasDisponiveis = count !== null && count < palestra.vagas;
-
-    // Determinar status e posição na fila
-    let statusFila: "CONFIRMADO" | "LISTA_ESPERA" = "CONFIRMADO";
-    let posicaoFila: number | null = null;
-
-    if (!vagasDisponiveis) {
-      // Não há vagas, entrar na lista de espera
-      statusFila = "LISTA_ESPERA";
-
-      // Calcular posição na fila
-      const { count: filaCount } = await supabase
-        .from("inscricoes_palestra")
-        .select("*", { count: "exact", head: true })
-        .eq("palestra_id", palestraId)
-        .eq("status_fila", "LISTA_ESPERA");
-
-      posicaoFila = (filaCount || 0) + 1;
-    }
-
-    const { data, error } = await supabase
-      .from("inscricoes_palestra")
-      .insert({
-        usuario_id: user.id,
-        palestra_id: palestraId,
-        presente: false,
-        status_presenca: "INSCRITO",
-        is_walk_in: false,
-        status_fila: statusFila,
-        posicao_fila: posicaoFila,
-      })
-      .select("*, palestras(*, eventos(titulo))")
-      .single();
+    // Usar função RPC atômica para evitar race conditions
+    const { data, error } = await withTimeout(
+      supabase.rpc("inscrever_palestra_atomico", {
+        p_usuario_id: user.id,
+        p_palestra_id: palestraId,
+      }),
+      30000, // 30 segundos para operações críticas
+    );
 
     if (error) throw new Error(error.message);
 
-    // Enviar notificação apropriada
-    const palestraData = data.palestras as any;
+    // A função RPC retorna um objeto JSONB com o resultado
+    const resultado = data as {
+      success: boolean;
+      error?: string;
+      inscricao_id?: string;
+      status_fila?: string;
+      posicao_fila?: number | null;
+      palestra?: {
+        id: string;
+        titulo: string;
+        data_hora_inicio: string;
+        data_hora_fim: string;
+        sala: string;
+      };
+      message?: string;
+    };
 
-    if (statusFila === "LISTA_ESPERA") {
+    if (!resultado.success) {
+      throw new Error(resultado.error || "Erro ao inscrever na palestra");
+    }
+
+    // Enviar notificação apropriada
+    if (resultado.status_fila === "LISTA_ESPERA" && resultado.palestra) {
       await notificacoesApi
         .enviar(user.id, "lista_espera", {
           palestra_id: palestraId,
-          palestra_titulo: palestraData?.titulo || "",
-          posicao: posicaoFila,
-          data: formatDate(palestraData?.data_hora_inicio),
-          hora: formatTime(palestraData?.data_hora_inicio),
+          palestra_titulo: resultado.palestra.titulo,
+          posicao: resultado.posicao_fila,
+          data: formatDate(resultado.palestra.data_hora_inicio),
+          hora: formatTime(resultado.palestra.data_hora_inicio),
         })
         .catch(() => {});
 
-      // Retornar com informação de lista de espera
       return {
-        ...data,
+        id: resultado.inscricao_id,
+        palestra_id: palestraId,
+        usuario_id: user.id,
+        status_fila: resultado.status_fila,
+        posicao_fila: resultado.posicao_fila,
         na_lista_espera: true,
-        posicao_fila: posicaoFila,
-        mensagem: `Você está na posição ${posicaoFila} da lista de espera`,
+        mensagem: resultado.message,
+        palestras: resultado.palestra,
       };
     }
 
-    await notificacoesApi
-      .enviar(user.id, "inscricao_confirmada", {
-        palestra_id: palestraId,
-        palestra_titulo: palestraData?.titulo || "",
-        data: formatDate(palestraData?.data_hora_inicio),
-        hora: formatTime(palestraData?.data_hora_inicio),
-        local: palestraData?.sala || "A definir",
-      })
-      .catch(() => {}); // Não falhar se notificação falhar
+    if (resultado.palestra) {
+      await notificacoesApi
+        .enviar(user.id, "inscricao_confirmada", {
+          palestra_id: palestraId,
+          palestra_titulo: resultado.palestra.titulo,
+          data: formatDate(resultado.palestra.data_hora_inicio),
+          hora: formatTime(resultado.palestra.data_hora_inicio),
+          local: resultado.palestra.sala || "A definir",
+        })
+        .catch(() => {});
+    }
 
-    return data;
+    return {
+      id: resultado.inscricao_id,
+      palestra_id: palestraId,
+      usuario_id: user.id,
+      status_fila: resultado.status_fila,
+      posicao_fila: null,
+      palestras: resultado.palestra,
+    };
   },
 
   cancelarPalestra: async (palestraId: string) => {
@@ -1643,6 +1576,70 @@ export const usuariosApi = {
       carga_horaria_total: cargaHoraria,
       certificados: certificados?.length || 0,
     };
+  },
+
+  // OTIMIZAÇÃO: Buscar stats de todos os alunos em 2 queries ao invés de N*2
+  getStatsBatch: async (alunoIds: string[]) => {
+    if (alunoIds.length === 0) return new Map();
+
+    // Buscar todas as inscrições de palestras de uma vez
+    const { data: todasInscricoes } = await supabase
+      .from("inscricoes_palestra")
+      .select("usuario_id, presente, status_presenca, palestras(carga_horaria)")
+      .in("usuario_id", alunoIds);
+
+    // Buscar todos os certificados de uma vez
+    const { data: todosCertificados } = await supabase
+      .from("certificados")
+      .select("usuario_id, id")
+      .in("usuario_id", alunoIds);
+
+    // Agrupar por usuário em memória
+    const statsMap = new Map<
+      string,
+      {
+        palestras_presentes: number;
+        carga_horaria_total: number;
+        certificados: number;
+      }
+    >();
+
+    // Inicializar todos os alunos com stats zerados
+    for (const id of alunoIds) {
+      statsMap.set(id, {
+        palestras_presentes: 0,
+        carga_horaria_total: 0,
+        certificados: 0,
+      });
+    }
+
+    // Processar inscrições
+    for (const insc of todasInscricoes || []) {
+      const stats = statsMap.get(insc.usuario_id);
+      if (stats) {
+        const presente =
+          insc.presente ||
+          insc.status_presenca === "PRESENTE" ||
+          insc.status_presenca === "WALK_IN" ||
+          insc.status_presenca === "ATRASADO";
+
+        if (presente) {
+          stats.palestras_presentes++;
+          stats.carga_horaria_total +=
+            (insc.palestras as any)?.carga_horaria || 0;
+        }
+      }
+    }
+
+    // Processar certificados
+    for (const cert of todosCertificados || []) {
+      const stats = statsMap.get(cert.usuario_id);
+      if (stats) {
+        stats.certificados++;
+      }
+    }
+
+    return statsMap;
   },
 
   getInscricoes: async (alunoId: string) => {

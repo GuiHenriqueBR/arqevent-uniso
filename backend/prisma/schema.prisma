@@ -121,6 +121,9 @@ model InscricaoEvento {
   evento          Evento            @relation(fields: [evento_id], references: [id])
 
   @@unique([usuario_id, evento_id])
+  @@index([usuario_id])
+  @@index([evento_id])
+  @@index([status])
   @@map("inscricoes_evento")
 }
 
@@ -138,6 +141,9 @@ model InscricaoPalestra {
   validador       Usuario?  @relation("ValidadorPresenca", fields: [qr_validado_por], references: [id])
 
   @@unique([usuario_id, palestra_id])
+  @@index([usuario_id])
+  @@index([palestra_id])
+  @@index([presente])
   @@map("inscricoes_palestra")
 }
 
@@ -156,5 +162,8 @@ model Certificado {
   palestra          Palestra?       @relation(fields: [palestra_id], references: [id])
   evento            Evento?         @relation(fields: [evento_id], references: [id])
 
+  @@index([usuario_id])
+  @@index([evento_id])
+  @@index([tipo])
   @@map("certificados")
 }

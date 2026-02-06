@@ -32,31 +32,45 @@ export class RelatoriosService {
       throw new NotFoundException("Evento não encontrado");
     }
 
-    // Get presence stats per lecture
-    const palestrasComPresenca = await Promise.all(
-      evento.palestras.map(async (palestra) => {
-        const inscricoes = await this.prisma.inscricaoPalestra.findMany({
-          where: { palestra_id: palestra.id },
-        });
+    // OTIMIZAÇÃO: Buscar TODAS as inscrições de palestras do evento em UMA query
+    // Isso evita N+1 queries (antes: 1 query por palestra)
+    const palestraIds = evento.palestras.map(p => p.id);
+    const todasInscricoes = await this.prisma.inscricaoPalestra.findMany({
+      where: { palestra_id: { in: palestraIds } },
+      select: { palestra_id: true, presente: true },
+    });
 
-        const presentes = inscricoes.filter((i) => i.presente).length;
+    // Agrupar inscrições por palestra em memória
+    const inscricoesPorPalestra = new Map<string, { total: number; presentes: number }>();
+    for (const palId of palestraIds) {
+      inscricoesPorPalestra.set(palId, { total: 0, presentes: 0 });
+    }
+    for (const insc of todasInscricoes) {
+      const stats = inscricoesPorPalestra.get(insc.palestra_id);
+      if (stats) {
+        stats.total++;
+        if (insc.presente) stats.presentes++;
+      }
+    }
 
-        return {
-          id: palestra.id,
-          titulo: palestra.titulo,
-          palestrante: palestra.palestrante?.nome || "Não definido",
-          data_hora: palestra.data_hora_inicio,
-          sala: palestra.sala,
-          vagas: palestra.vagas,
-          inscritos: inscricoes.length,
-          presentes,
-          percentual_presenca:
-            inscricoes.length > 0
-              ? Math.round((presentes / inscricoes.length) * 100)
-              : 0,
-        };
-      }),
-    );
+    // Montar estatísticas por palestra (sem fazer queries adicionais)
+    const palestrasComPresenca = evento.palestras.map((palestra) => {
+      const stats = inscricoesPorPalestra.get(palestra.id) || { total: 0, presentes: 0 };
+      return {
+        id: palestra.id,
+        titulo: palestra.titulo,
+        palestrante: palestra.palestrante?.nome || "Não definido",
+        data_hora: palestra.data_hora_inicio,
+        sala: palestra.sala,
+        vagas: palestra.vagas,
+        inscritos: stats.total,
+        presentes: stats.presentes,
+        percentual_presenca:
+          stats.total > 0
+            ? Math.round((stats.presentes / stats.total) * 100)
+            : 0,
+      };
+    });
 
     const totalPresencas = palestrasComPresenca.reduce(
       (sum, p) => sum + p.presentes,
@@ -117,51 +131,63 @@ export class RelatoriosService {
       },
     });
 
-    const eventosParticipados = await Promise.all(
-      inscricoesEventos.map(async (inscricao) => {
-        const inscricoesPalestras =
-          await this.prisma.inscricaoPalestra.findMany({
-            where: {
-              usuario_id: alunoId,
-              palestra: { evento_id: inscricao.evento_id },
+    // OTIMIZAÇÃO: Buscar TODAS as inscrições de palestras do aluno em UMA query
+    const eventoIds = inscricoesEventos.map(ie => ie.evento_id);
+    const todasInscricoesPalestras = await this.prisma.inscricaoPalestra.findMany({
+      where: {
+        usuario_id: alunoId,
+        palestra: { evento_id: { in: eventoIds } },
+      },
+      include: {
+        palestra: {
+          include: {
+            palestrante: {
+              select: { nome: true },
             },
-            include: {
-              palestra: {
-                include: {
-                  palestrante: {
-                    select: { nome: true },
-                  },
-                },
-              },
-            },
-          });
-
-        const palestras = inscricoesPalestras.map((ip) => ({
-          titulo: ip.palestra.titulo,
-          palestrante: ip.palestra.palestrante?.nome || "Não definido",
-          inscrito: true,
-          presente: ip.presente,
-          data_presenca: ip.data_presenca,
-          carga_horaria: ip.palestra.carga_horaria,
-        }));
-
-        const presentes = palestras.filter((p) => p.presente).length;
-        const cargaCumprida = palestras
-          .filter((p) => p.presente)
-          .reduce((sum, p) => sum + p.carga_horaria, 0);
-
-        return {
-          evento: inscricao.evento.titulo,
-          data: `${inscricao.evento.data_inicio.toLocaleDateString("pt-BR")} - ${inscricao.evento.data_fim.toLocaleDateString("pt-BR")}`,
-          palestras,
-          resumo: {
-            total_palestras_inscritas: palestras.length,
-            total_palestras_presentes: presentes,
-            carga_horaria_cumprida: cargaCumprida,
           },
-        };
-      }),
-    );
+        },
+      },
+    });
+
+    // Agrupar inscrições por evento em memória
+    const inscricoesPorEvento = new Map<string, typeof todasInscricoesPalestras>();
+    for (const ip of todasInscricoesPalestras) {
+      const eventoId = ip.palestra.evento_id;
+      if (!inscricoesPorEvento.has(eventoId)) {
+        inscricoesPorEvento.set(eventoId, []);
+      }
+      inscricoesPorEvento.get(eventoId)!.push(ip);
+    }
+
+    // Montar relatório sem queries adicionais
+    const eventosParticipados = inscricoesEventos.map((inscricao) => {
+      const inscricoesPalestras = inscricoesPorEvento.get(inscricao.evento_id) || [];
+
+      const palestras = inscricoesPalestras.map((ip) => ({
+        titulo: ip.palestra.titulo,
+        palestrante: ip.palestra.palestrante?.nome || "Não definido",
+        inscrito: true,
+        presente: ip.presente,
+        data_presenca: ip.data_presenca,
+        carga_horaria: ip.palestra.carga_horaria,
+      }));
+
+      const presentes = palestras.filter((p) => p.presente).length;
+      const cargaCumprida = palestras
+        .filter((p) => p.presente)
+        .reduce((sum, p) => sum + p.carga_horaria, 0);
+
+      return {
+        evento: inscricao.evento.titulo,
+        data: `${inscricao.evento.data_inicio.toLocaleDateString("pt-BR")} - ${inscricao.evento.data_fim.toLocaleDateString("pt-BR")}`,
+        palestras,
+        resumo: {
+          total_palestras_inscritas: palestras.length,
+          total_palestras_presentes: presentes,
+          carga_horaria_cumprida: cargaCumprida,
+        },
+      };
+    });
 
     const certificados = await this.prisma.certificado.findMany({
       where: { usuario_id: alunoId },

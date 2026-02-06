@@ -11,64 +11,81 @@ export class InscricoesService {
   constructor(private prisma: PrismaService) {}
 
   async inscreverEvento(usuarioId: string, eventoId: string) {
-    // Check if evento exists and is active
-    const evento = await this.prisma.evento.findUnique({
-      where: { id: eventoId },
-      include: {
-        _count: { select: { inscritos: true } },
+    // OTIMIZAÇÃO: Usar transação para evitar overbooking por race condition
+    return this.prisma.$transaction(
+      async (tx) => {
+        // Check if evento exists and is active
+        const evento = await tx.evento.findUnique({
+          where: { id: eventoId },
+          include: {
+            _count: { select: { inscritos: true } },
+          },
+        });
+
+        if (!evento) {
+          throw new NotFoundException("Evento não encontrado");
+        }
+
+        if (!evento.ativo) {
+          throw new BadRequestException("Este evento não está mais ativo");
+        }
+
+        // Check vagas
+        if (evento._count.inscritos >= evento.vagas_totais) {
+          throw new BadRequestException("Não há mais vagas disponíveis");
+        }
+
+        // Check turno permission
+        const usuario = await tx.usuario.findUnique({
+          where: { id: usuarioId },
+        });
+
+        if (
+          evento.turno_permitido !== "TODOS" &&
+          evento.turno_permitido !== usuario.turno
+        ) {
+          throw new BadRequestException(
+            `Este evento é exclusivo para o turno ${evento.turno_permitido}`,
+          );
+        }
+
+        // Check if already inscribed
+        const existingInscricao = await tx.inscricaoEvento.findUnique({
+          where: {
+            usuario_id_evento_id: {
+              usuario_id: usuarioId,
+              evento_id: eventoId,
+            },
+          },
+        });
+
+        if (existingInscricao) {
+          throw new ConflictException("Você já está inscrito neste evento");
+        }
+
+        return tx.inscricaoEvento.create({
+          data: {
+            usuario_id: usuarioId,
+            evento_id: eventoId,
+            status: "CONFIRMADA",
+          },
+          include: {
+            evento: {
+              select: {
+                id: true,
+                titulo: true,
+                data_inicio: true,
+                data_fim: true,
+              },
+            },
+          },
+        });
       },
-    });
-
-    if (!evento) {
-      throw new NotFoundException("Evento não encontrado");
-    }
-
-    if (!evento.ativo) {
-      throw new BadRequestException("Este evento não está mais ativo");
-    }
-
-    // Check vagas
-    if (evento._count.inscritos >= evento.vagas_totais) {
-      throw new BadRequestException("Não há mais vagas disponíveis");
-    }
-
-    // Check turno permission
-    const usuario = await this.prisma.usuario.findUnique({
-      where: { id: usuarioId },
-    });
-
-    if (
-      evento.turno_permitido !== "TODOS" &&
-      evento.turno_permitido !== usuario.turno
-    ) {
-      throw new BadRequestException(
-        `Este evento é exclusivo para o turno ${evento.turno_permitido}`,
-      );
-    }
-
-    // Check if already inscribed
-    const existingInscricao = await this.prisma.inscricaoEvento.findUnique({
-      where: {
-        usuario_id_evento_id: { usuario_id: usuarioId, evento_id: eventoId },
+      {
+        isolationLevel: "Serializable", // Garantir que não haja overbooking
+        timeout: 10000, // 10 segundos de timeout
       },
-    });
-
-    if (existingInscricao) {
-      throw new ConflictException("Você já está inscrito neste evento");
-    }
-
-    return this.prisma.inscricaoEvento.create({
-      data: {
-        usuario_id: usuarioId,
-        evento_id: eventoId,
-        status: "CONFIRMADA",
-      },
-      include: {
-        evento: {
-          select: { id: true, titulo: true, data_inicio: true, data_fim: true },
-        },
-      },
-    });
+    );
   }
 
   async cancelarInscricaoEvento(usuarioId: string, eventoId: string) {

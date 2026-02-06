@@ -6,6 +6,7 @@ import {
   Delete,
   Body,
   Param,
+  Query,
   UseGuards,
 } from "@nestjs/common";
 import { EventosService } from "./eventos.service";
@@ -23,8 +24,12 @@ export class EventosController {
 
   @Public()
   @Get()
-  async findAll() {
-    return this.eventosService.findAll();
+  async findAll(@Query("page") page?: string, @Query("limit") limit?: string) {
+    return this.eventosService.findAll(
+      undefined,
+      page ? parseInt(page, 10) : 1,
+      limit ? Math.min(parseInt(limit, 10), 100) : 50, // Max 100 por página
+    );
   }
 
   @Public()
@@ -65,7 +70,15 @@ export class EventosController {
 
   @Get(":id/inscritos")
   @Roles("ADMIN", "ORGANIZADOR", "PALESTRANTE")
-  async getInscritos(@Param("id") id: string) {
-    return this.eventosService.getInscritos(id);
+  async getInscritos(
+    @Param("id") id: string,
+    @Query("page") page?: string,
+    @Query("limit") limit?: string,
+  ) {
+    return this.eventosService.getInscritos(
+      id,
+      page ? parseInt(page, 10) : 1,
+      limit ? Math.min(parseInt(limit, 10), 100) : 50,
+    );
   }
 }

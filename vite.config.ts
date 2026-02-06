@@ -80,18 +80,55 @@ export default defineConfig(({ mode }) => {
         workbox: {
           globPatterns: ["**/*.{js,css,html,ico,png,svg,woff2}"],
           maximumFileSizeToCacheInBytes: 5 * 1024 * 1024, // 5 MB
+          cleanupOutdatedCaches: true,
+          skipWaiting: true,
+          clientsClaim: true,
+          navigateFallback: "index.html",
+          navigateFallbackDenylist: [/^\/api/],
           runtimeCaching: [
+            // Cache para Google Fonts CSS
+            {
+              urlPattern: /^https:\/\/fonts\.googleapis\.com\/.*/i,
+              handler: "StaleWhileRevalidate",
+              options: {
+                cacheName: "google-fonts-stylesheets",
+                expiration: {
+                  maxEntries: 10,
+                  maxAgeSeconds: 60 * 60 * 24 * 365, // 1 ano
+                },
+                cacheableResponse: {
+                  statuses: [0, 200],
+                },
+              },
+            },
+            // Cache para Google Fonts (arquivos de fonte)
+            {
+              urlPattern: /^https:\/\/fonts\.gstatic\.com\/.*/i,
+              handler: "CacheFirst",
+              options: {
+                cacheName: "google-fonts-webfonts",
+                expiration: {
+                  maxEntries: 30,
+                  maxAgeSeconds: 60 * 60 * 24 * 365, // 1 ano
+                },
+                cacheableResponse: {
+                  statuses: [0, 200],
+                },
+              },
+            },
+            // Cache para Supabase API - timeout reduzido para evitar loading infinito
             {
               urlPattern: /^https:\/\/.*\.supabase\.co\/.*/i,
               handler: "NetworkFirst",
               options: {
                 cacheName: "supabase-api-cache",
+                networkTimeoutSeconds: 5, // Reduzido de 30 para 5 segundos
                 expiration: {
-                  maxEntries: 100,
-                  maxAgeSeconds: 60 * 60 * 24, // 24 horas
+                  maxEntries: 200,
+                  maxAgeSeconds: 60, // Reduzido de 24h para 60 segundos
                 },
                 cacheableResponse: {
-                  statuses: [0, 200],
+                  statuses: [200], // Removido status 0 para não cachear respostas opaque com erro
                 },
               },
             },
@@ -107,6 +144,22 @@ export default defineConfig(({ mode }) => {
       alias: {
         "@": path.resolve(__dirname, "."),
       },
+    },
+    // Otimização de build: code splitting para carregamento mais rápido
+    build: {
+      rollupOptions: {
+        output: {
+          manualChunks: {
+            // Vendor chunks para cache eficiente
+            "vendor-react": ["react", "react-dom"],
+            "vendor-supabase": ["@supabase/supabase-js"],
+            "vendor-charts": ["recharts"],
+            "vendor-pdf": ["jspdf"],
+          },
+        },
+      },
+      // Aumentar limite de chunk warning
+      chunkSizeWarningLimit: 600,
     },
   };
 });

@@ -37,72 +37,123 @@ const App: React.FC = () => {
     tipo: profile.tipo ?? UserType.ALUNO,
   });
 
+  // Timeout wrapper para evitar carregamento infinito
+  const withTimeout = <T,>(
+    promise: Promise<T>,
+    ms: number = 10000,
+  ): Promise<T> => {
+    return Promise.race([
+      promise,
+      new Promise<never>((_, reject) =>
+        setTimeout(() => reject(new Error("Timeout")), ms),
+      ),
+    ]);
+  };
+
   const loadProfile = async (userId: string, email?: string | null) => {
-    const { data: profile, error } = await supabase
-      .from("profiles")
-      .select("id,email,nome,ra,semestre,turno,tipo")
-      .eq("id", userId)
-      .single();
+    // Fallback user para garantir que sempre haja um usuário definido
+    const fallbackUser: User = {
+      id: userId,
+      email: email ?? "",
+      nome: "Usuário",
+      tipo: UserType.ALUNO,
+    };
 
-    if (profile) {
-      setCurrentUser(mapProfileToUser(profile as ProfileRow));
-      return;
-    }
+    try {
+      const { data: profile, error } = await withTimeout(
+        supabase
+          .from("profiles")
+          .select("id,email,nome,ra,semestre,turno,tipo")
+          .eq("id", userId)
+          .single(),
+      );
 
-    if (error && error.code !== "PGRST116") {
-      console.error(error);
-      return;
-    }
+      if (profile) {
+        setCurrentUser(mapProfileToUser(profile as ProfileRow));
+        return;
+      }
 
-    const { data: upserted, error: upsertError } = await supabase
-      .from("profiles")
-      .upsert(
-        {
-          id: userId,
-          email: email ?? null,
-          nome: "Usuário",
-          tipo: UserType.ALUNO,
-        },
-        { onConflict: "id" },
-      )
-      .select("id,email,nome,ra,semestre,turno,tipo")
-      .single();
+      if (error && error.code !== "PGRST116") {
+        console.error("Erro ao carregar perfil:", error);
+        setCurrentUser(fallbackUser);
+        return;
+      }
 
-    if (upsertError) {
-      console.error(upsertError);
-      return;
-    }
+      // Perfil não existe, criar novo
+      const { data: upserted, error: upsertError } = await withTimeout(
+        supabase
+          .from("profiles")
+          .upsert(
+            {
+              id: userId,
+              email: email ?? null,
+              nome: "Usuário",
+              tipo: UserType.ALUNO,
+            },
+            { onConflict: "id" },
+          )
+          .select("id,email,nome,ra,semestre,turno,tipo")
+          .single(),
+      );
 
-    if (upserted) {
-      setCurrentUser(mapProfileToUser(upserted as ProfileRow));
+      if (upsertError) {
+        console.error("Erro ao criar perfil:", upsertError);
+        setCurrentUser(fallbackUser);
+        return;
+      }
+
+      if (upserted) {
+        setCurrentUser(mapProfileToUser(upserted as ProfileRow));
+      } else {
+        setCurrentUser(fallbackUser);
+      }
+    } catch (err) {
+      console.error("Erro/timeout ao carregar perfil:", err);
+      setCurrentUser(fallbackUser);
     }
   };
 
   useEffect(() => {
+    let mounted = true;
+    let initialLoadDone = false;
+
     const init = async () => {
       if (!isSupabaseConfigured) {
-        setLoading(false);
+        if (mounted) setLoading(false);
         return;
       }
-      const { data } = await supabase.auth.getSession();
-      const session = data.session;
-      if (session?.user?.id) {
-        await loadProfile(session.user.id, session.user.email);
+
+      try {
+        const { data } = await supabase.auth.getSession();
+        const session = data.session;
+        if (session?.user?.id && mounted) {
+          await loadProfile(session.user.id, session.user.email);
+        }
+      } catch (err) {
+        console.error("Erro ao obter sessão:", err);
+      } finally {
+        initialLoadDone = true;
+        if (mounted) setLoading(false);
       }
-      setLoading(false);
     };
 
     init();
 
     const { data: authListener } = supabase.auth.onAuthStateChange(
       async (_event, session) => {
+        // Ignorar eventos até init() terminar para evitar race condition
+        if (!mounted || !initialLoadDone) return;
+
         if (!isSupabaseConfigured) {
           setCurrentUser(null);
           setLoading(false);
           return;
         }
 
-        setLoading(true);
+        // Só mostra loading se ainda não temos usuário
+        if (!currentUser) {
+          setLoading(true);
+        }
 
         if (!session?.user?.id) {
           setCurrentUser(null);
@@ -111,11 +162,12 @@ const App: React.FC = () => {
         }
 
         await loadProfile(session.user.id, session.user.email);
-        setLoading(false);
+        if (mounted) setLoading(false);
       },
     );
 
     return () => {
+      mounted = false;
       authListener.subscription.unsubscribe();
     };
   }, []);
@@ -127,14 +179,15 @@ const App: React.FC = () => {
   }, [isRecovery]);
 
   const handleLogout = async () => {
+    setLoading(true);
     try {
       await supabase.auth.signOut();
     } catch (error) {
       console.error("Erro ao sair:", error);
     } finally {
       setCurrentUser(null);
-      // Fallback para garantir limpeza de sessão visual
-      window.location.reload();
+      setLoading(false);
+      // Não fazemos reload - o listener de auth limpa naturalmente
     }
   };
 
