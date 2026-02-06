@@ -71,7 +71,7 @@ const ProjectorView: React.FC<ProjectorViewProps> = ({ lecture, onClose }) => {
   }, [lecture.data_hora_fim]);
 
   return (
-    <div className="fixed inset-0 bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 z-[100] flex flex-col items-center justify-center p-4 sm:p-8 animate-in fade-in duration-300">
+    <div className="fixed inset-0 bg-linear-to-br from-slate-900 via-indigo-950 to-slate-900 z-100 flex flex-col items-center justify-center p-4 sm:p-8 animate-in fade-in duration-300">
       <button
         onClick={onClose}
         className="absolute top-4 right-4 sm:top-8 sm:right-8 bg-white/10 hover:bg-white/20 text-white p-2 sm:p-3 rounded-full transition-colors backdrop-blur-sm group"
@@ -98,7 +98,7 @@ const ProjectorView: React.FC<ProjectorViewProps> = ({ lecture, onClose }) => {
         </div>
 
         <div className="bg-white p-6 sm:p-10 rounded-3xl shadow-2xl shadow-indigo-500/20 relative mx-auto max-w-sm sm:max-w-md w-full aspect-square flex items-center justify-center group">
-          <div className="absolute -inset-1 bg-gradient-to-r from-indigo-500 to-purple-500 rounded-[26px] blur opacity-30 group-hover:opacity-60 transition duration-1000"></div>
+          <div className="absolute -inset-1 bg-linear-to-r from-indigo-500 to-purple-500 rounded-[26px] blur opacity-30 group-hover:opacity-60 transition duration-1000"></div>
           <div className="absolute -top-5 left-1/2 transform -translate-x-1/2 bg-indigo-600 text-white px-6 py-2 rounded-full text-sm font-bold shadow-lg shadow-indigo-600/30 whitespace-nowrap z-10">
             📱 Escaneie pelo App ArqEvent
           </div>
@@ -152,7 +152,7 @@ const ProjectorView: React.FC<ProjectorViewProps> = ({ lecture, onClose }) => {
             </div>
             <div className="text-left min-w-0">
               <p className="text-sm text-white/50 font-medium">Localização</p>
-              <span className="text-xl font-bold truncate block max-w-[150px]">
+              <span className="text-xl font-bold truncate block max-w-37.5">
                 {lecture.sala || "Não definido"}
               </span>
             </div>

@@ -113,12 +113,12 @@ const PresencaModal: React.FC<PresencaModalProps> = ({
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50 animate-in fade-in backdrop-blur-sm">
       <div className="bg-white rounded-2xl shadow-xl w-full max-w-4xl max-h-[90vh] overflow-hidden flex flex-col">
-        <div className="p-4 sm:p-6 border-b border-slate-100 flex items-center justify-between flex-shrink-0">
+        <div className="p-4 sm:p-6 border-b border-slate-100 flex items-center justify-between shrink-0">
           <div>
             <h3 className="text-lg font-bold text-slate-800">
               Gerenciar Presenças
             </h3>
-            <p className="text-sm text-slate-500 mt-1 max-w-[200px] sm:max-w-md truncate">
+            <p className="text-sm text-slate-500 mt-1 max-w-50 sm:max-w-md truncate">
               {palestra?.titulo}
             </p>
           </div>
@@ -204,7 +204,7 @@ const PresencaModal: React.FC<PresencaModalProps> = ({
               {/* Lista de Presenças */}
               <div className="border border-slate-200 rounded-xl overflow-hidden shadow-sm">
                 <div className="overflow-x-auto">
-                  <table className="w-full text-left min-w-[600px]">
+                  <table className="w-full text-left min-w-150">
                     <thead className="bg-slate-50 text-slate-500 text-xs uppercase font-semibold">
                       <tr>
                         <th className="px-4 py-3">Aluno</th>
@@ -229,7 +229,7 @@ const PresencaModal: React.FC<PresencaModalProps> = ({
                           <tr key={p.id} className="hover:bg-slate-50">
                             <td className="px-4 py-3">
                               <div className="flex items-center gap-3">
-                                <div className="w-9 h-9 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white font-bold text-xs shadow-sm">
+                                <div className="w-9 h-9 rounded-full bg-linear-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white font-bold text-xs shadow-sm">
                                   {p.profiles?.nome?.charAt(0) || "?"}
                                 </div>
                                 <div>

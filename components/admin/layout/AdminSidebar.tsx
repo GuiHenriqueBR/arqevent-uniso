@@ -122,7 +122,7 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({
           {/* User Footer */}
           <div className="p-4 border-t border-slate-800 bg-slate-900/50">
             <div className="flex items-center gap-3 mb-4 px-2">
-              <div className="w-9 h-9 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white font-bold text-sm shadow-md border border-white/10">
+              <div className="w-9 h-9 rounded-full bg-linear-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white font-bold text-sm shadow-md border border-white/10">
                 {user.nome.charAt(0)}
               </div>
               <div className="overflow-hidden">

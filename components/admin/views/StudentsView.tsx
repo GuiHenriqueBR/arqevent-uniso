@@ -163,7 +163,7 @@ const StudentsView: React.FC<StudentsViewProps> = ({
                 className="p-4 hover:bg-slate-50 transition-colors"
               >
                 <div className="flex items-start gap-3 mb-3">
-                  <div className="w-10 h-10 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white font-bold text-sm flex-shrink-0 shadow-sm">
+                  <div className="w-10 h-10 rounded-full bg-linear-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white font-bold text-sm shrink-0 shadow-sm">
                     {student.nome?.charAt(0) || "?"}
                   </div>
                   <div className="flex-1 min-w-0">
@@ -228,7 +228,7 @@ const StudentsView: React.FC<StudentsViewProps> = ({
 
         {/* Desktop Table View */}
         <div className="hidden lg:block overflow-x-auto">
-          <table className="w-full text-left min-w-[800px]">
+          <table className="w-full text-left min-w-200">
             <thead className="bg-slate-50 text-slate-500 text-xs uppercase border-b border-slate-100 font-semibold tracking-wider">
               <tr>
                 <th className="px-6 py-4">Aluno</th>
@@ -262,7 +262,7 @@ const StudentsView: React.FC<StudentsViewProps> = ({
                   >
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-3">
-                        <div className="w-9 h-9 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white font-bold text-xs shadow-sm">
+                        <div className="w-9 h-9 rounded-full bg-linear-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white font-bold text-xs shadow-sm">
                           {student.nome?.charAt(0) || "?"}
                         </div>
                         <div>
@@ -344,12 +344,12 @@ const StudentsView: React.FC<StudentsViewProps> = ({
             className="bg-white rounded-2xl w-full max-w-2xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="bg-slate-900 p-6 flex justify-between items-start text-white flex-shrink-0 relative overflow-hidden">
+            <div className="bg-slate-900 p-6 flex justify-between items-start text-white shrink-0 relative overflow-hidden">
               {/* Decorative background circle */}
               <div className="absolute -top-10 -right-10 w-40 h-40 bg-indigo-500/20 rounded-full blur-3xl pointer-events-none"></div>
 
               <div className="flex gap-4 flex-1 min-w-0 z-10">
-                <div className="w-16 h-16 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-full flex items-center justify-center text-2xl font-bold flex-shrink-0 shadow-lg border-2 border-slate-800">
+                <div className="w-16 h-16 bg-linear-to-br from-indigo-500 to-purple-600 rounded-full flex items-center justify-center text-2xl font-bold shrink-0 shadow-lg border-2 border-slate-800">
                   {selectedStudent.nome?.charAt(0) || "?"}
                 </div>
                 <div className="min-w-0 pt-1">
@@ -371,7 +371,7 @@ const StudentsView: React.FC<StudentsViewProps> = ({
               </div>
               <button
                 onClick={() => setSelectedStudent(null)}
-                className="text-slate-400 hover:text-white ml-2 flex-shrink-0 transition-colors bg-white/5 hover:bg-white/10 p-2 rounded-full relative z-10"
+                className="text-slate-400 hover:text-white ml-2 shrink-0 transition-colors bg-white/5 hover:bg-white/10 p-2 rounded-full relative z-10"
                 type="button"
               >
                 <X className="w-5 h-5" />
@@ -581,7 +581,7 @@ const StudentsView: React.FC<StudentsViewProps> = ({
               )}
             </div>
 
-            <div className="p-4 border-t border-slate-100 bg-white flex flex-col sm:flex-row justify-end gap-3 flex-shrink-0">
+            <div className="p-4 border-t border-slate-100 bg-white flex flex-col sm:flex-row justify-end gap-3 shrink-0">
               <button
                 onClick={() => {
                   setEditingStudent(selectedStudent);

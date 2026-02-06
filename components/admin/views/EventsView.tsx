@@ -150,7 +150,7 @@ const EventsView: React.FC<EventsViewProps> = ({
           {/* Actions and Filters */}
           <div className="flex flex-col xl:flex-row gap-4 justify-between">
             <div className="flex flex-col sm:flex-row gap-3 flex-1 overflow-x-auto pb-2">
-              <div className="relative flex-1 min-w-[200px]">
+              <div className="relative flex-1 min-w-50">
                 <Search className="w-4 h-4 absolute left-3 top-3 text-slate-400" />
                 <input
                   type="text"
@@ -213,7 +213,7 @@ const EventsView: React.FC<EventsViewProps> = ({
                   key={evento.id}
                   className="bg-white rounded-xl border border-slate-100 shadow-sm overflow-hidden hover:shadow-md transition-shadow group flex flex-col"
                 >
-                  <div className="h-2 bg-gradient-to-r from-indigo-500 to-purple-500" />
+                  <div className="h-2 bg-linear-to-r from-indigo-500 to-purple-500" />
                   <div className="p-5 flex flex-col flex-1">
                     <div className="flex justify-between items-start mb-3">
                       <h3 className="font-bold text-slate-800 line-clamp-2 text-lg">
@@ -288,7 +288,7 @@ const EventsView: React.FC<EventsViewProps> = ({
           {/* Actions and Filters */}
           <div className="flex flex-col xl:flex-row gap-4 justify-between">
             <div className="flex flex-col sm:flex-row gap-3 flex-1 overflow-x-auto pb-2 flex-wrap">
-              <div className="relative flex-1 min-w-[200px]">
+              <div className="relative flex-1 min-w-50">
                 <Search className="w-4 h-4 absolute left-3 top-3 text-slate-400" />
                 <input
                   type="text"
@@ -426,7 +426,7 @@ const EventsView: React.FC<EventsViewProps> = ({
           <div className="bg-white rounded-xl shadow-sm overflow-hidden border border-slate-100">
             {/* Desktop Table View */}
             <div className="hidden lg:block overflow-x-auto">
-              <table className="w-full text-left min-w-[1000px]">
+              <table className="w-full text-left min-w-250">
                 <thead className="bg-slate-50 text-slate-500 text-xs uppercase border-b border-slate-100 disabled:opacity-50">
                   <tr>
                     <th className="px-6 py-4 font-semibold tracking-wider">
@@ -497,7 +497,7 @@ const EventsView: React.FC<EventsViewProps> = ({
                         >
                           <td className="px-6 py-4">
                             <p
-                              className="font-medium text-slate-900 line-clamp-1 max-w-[250px]"
+                              className="font-medium text-slate-900 line-clamp-1 max-w-62.5"
                               title={palestra.titulo}
                             >
                               {palestra.titulo}
@@ -517,13 +517,13 @@ const EventsView: React.FC<EventsViewProps> = ({
                             </Badge>
                           </td>
                           <td
-                            className="px-6 py-4 text-slate-600 text-sm max-w-[200px] truncate"
+                            className="px-6 py-4 text-slate-600 text-sm max-w-50 truncate"
                             title={palestranteNome}
                           >
                             {palestranteNome}
                           </td>
                           <td
-                            className="px-6 py-4 text-slate-600 text-sm max-w-[200px] truncate"
+                            className="px-6 py-4 text-slate-600 text-sm max-w-50 truncate"
                             title={eventoTitulo}
                           >
                             {eventoTitulo}
