@@ -13,7 +13,7 @@ export default defineConfig(({ mode }) => {
     plugins: [
       react(),
       VitePWA({
-        registerType: "autoUpdate",
+        registerType: "prompt",
         includeAssets: ["favicon.ico", "icons/*.png"],
         manifest: {
           name: "ArqEvent UNISO",
@@ -81,8 +81,8 @@ export default defineConfig(({ mode }) => {
           globPatterns: ["**/*.{js,css,html,ico,png,svg,woff2}"],
           maximumFileSizeToCacheInBytes: 5 * 1024 * 1024, // 5 MB
           cleanupOutdatedCaches: true,
-          skipWaiting: true,
-          clientsClaim: true,
+          skipWaiting: false,
+          clientsClaim: false,
           navigateFallback: "index.html",
           navigateFallbackDenylist: [/^\/api/],
           runtimeCaching: [
