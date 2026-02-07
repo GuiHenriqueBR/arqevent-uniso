@@ -1422,6 +1422,8 @@ export interface Aviso {
   titulo: string;
   mensagem: string;
   tipo: "info" | "success" | "warning" | "error";
+  imagem_url?: string | null;
+  link_url?: string | null;
   criado_por?: string;
   ativo: boolean;
   created_at: string;
@@ -1454,6 +1456,8 @@ export const avisosApi = {
     titulo: string;
     mensagem: string;
     tipo: "info" | "success" | "warning" | "error";
+    imagem_url?: string | null;
+    link_url?: string | null;
     ativo?: boolean;
   }) => {
     const {

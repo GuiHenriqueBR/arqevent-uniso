@@ -42,6 +42,7 @@ interface StudentHomeProps {
   onOpenNotificacoes: () => void;
   onInscreverEvento: (id: string) => void;
   onInscreverPalestra: (id: string) => void;
+  onViewDetails: (palestra: Palestra) => void;
   onOpenScanner: () => void;
   onDownloadComprovanteInscricao: (id: string) => void;
   onDownloadComprovantePresenca: (id: string) => void;
@@ -63,6 +64,7 @@ const StudentHome: React.FC<StudentHomeProps> = ({
   onOpenNotificacoes,
   onInscreverEvento,
   onInscreverPalestra,
+  onViewDetails,
   onOpenScanner,
   onDownloadComprovanteInscricao,
   onDownloadComprovantePresenca,
@@ -72,6 +74,7 @@ const StudentHome: React.FC<StudentHomeProps> = ({
   >("todos");
 
   const now = new Date();
+  const bannerAvisos = avisos.filter((a) => a.imagem_url);
 
   // Derived Lists
   const happeningNow = React.useMemo(() => {
@@ -189,6 +192,56 @@ const StudentHome: React.FC<StudentHomeProps> = ({
           </motion.div>
         </div>
       </div>
+
+      {/* Avisos */}
+      {bannerAvisos.length > 0 && (
+        <div className="space-y-3">
+          <div className="flex items-center justify-between px-1">
+            <h2 className="text-sm font-bold text-slate-700">Destaques</h2>
+            <span className="text-xs text-slate-400">
+              {bannerAvisos.length} banner{bannerAvisos.length > 1 ? "s" : ""}
+            </span>
+          </div>
+          <div className="flex overflow-x-auto gap-4 pb-3 -mx-4 px-4 snap-x hide-scrollbar">
+            {bannerAvisos.map((aviso) => (
+              <div
+                key={aviso.id}
+                className="snap-center shrink-0 w-80 sm:w-96 rounded-2xl overflow-hidden border border-slate-200 bg-white shadow-sm relative"
+              >
+                <div className="relative h-40 sm:h-44">
+                  <img
+                    src={aviso.imagem_url as string}
+                    alt={aviso.titulo}
+                    className="absolute inset-0 w-full h-full object-cover"
+                    loading="lazy"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent"></div>
+                  <div className="absolute bottom-3 left-3 right-3 text-white">
+                    <h3 className="text-base font-bold leading-tight">
+                      {aviso.titulo}
+                    </h3>
+                    <p className="text-xs text-white/90 mt-1 line-clamp-2">
+                      {aviso.mensagem}
+                    </p>
+                  </div>
+                </div>
+                {aviso.link_url && (
+                  <div className="p-3">
+                    <a
+                      href={aviso.link_url}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="text-sm font-semibold text-indigo-600 hover:underline"
+                    >
+                      Ver mais
+                    </a>
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Avisos */}
       <AnimatePresence>
@@ -334,6 +387,17 @@ const StudentHome: React.FC<StudentHomeProps> = ({
       {/* Hero Event */}
       {!loading && eventoSelecionado && happeningNow.length === 0 && (
         <AnimatedCard className="bg-indigo-600 border-none text-white shadow-xl shadow-indigo-600/20 relative overflow-hidden min-h-55 flex flex-col justify-center">
+          {eventoSelecionado.banner_url && (
+            <div className="absolute inset-0">
+              <img
+                src={eventoSelecionado.banner_url}
+                alt={eventoSelecionado.titulo}
+                className="w-full h-full object-cover opacity-25"
+                loading="lazy"
+              />
+              <div className="absolute inset-0 bg-indigo-700/70"></div>
+            </div>
+          )}
           <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-400 rounded-full mix-blend-multiply filter blur-[80px] opacity-70 animate-blob"></div>
           <div className="absolute bottom-0 left-0 w-64 h-64 bg-purple-400 rounded-full mix-blend-multiply filter blur-[80px] opacity-70 animate-blob animation-delay-2000"></div>
           <div className="relative z-10 p-6 sm:p-8">
@@ -414,7 +478,11 @@ const StudentHome: React.FC<StudentHomeProps> = ({
                                     {palestra.sala || "TBD"}
                                  </div>
                                  <button 
-                                    onClick={() => onInscreverPalestra(palestra.id)}
+                                  onClick={() =>
+                                    isInscritoPalestra(palestra.id)
+                                     ? onViewDetails(palestra)
+                                     : onInscreverPalestra(palestra.id)
+                                  }
                                     className="text-xs bg-indigo-50 text-indigo-600 px-3 py-1.5 rounded-lg font-bold hover:bg-indigo-100 transition-colors"
                                  >
                                     {isInscritoPalestra(palestra.id) ? "Ver Detalhes" : "Inscrever"}

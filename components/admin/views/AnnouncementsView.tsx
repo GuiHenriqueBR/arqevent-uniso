@@ -35,12 +35,21 @@ const AnnouncementsView: React.FC<AnnouncementsViewProps> = ({
     titulo: "",
     mensagem: "",
     tipo: "info" as "info" | "warning" | "success" | "error",
+    imagem_url: "",
+    link_url: "",
     ativo: true,
   });
 
   const openCreateModal = () => {
     setSelectedAviso(null);
-    setForm({ titulo: "", mensagem: "", tipo: "info", ativo: true });
+    setForm({
+      titulo: "",
+      mensagem: "",
+      tipo: "info",
+      imagem_url: "",
+      link_url: "",
+      ativo: true,
+    });
     setIsModalOpen(true);
   };
 
@@ -50,6 +59,8 @@ const AnnouncementsView: React.FC<AnnouncementsViewProps> = ({
       titulo: aviso.titulo,
       mensagem: aviso.mensagem,
       tipo: aviso.tipo,
+      imagem_url: aviso.imagem_url || "",
+      link_url: aviso.link_url || "",
       ativo: aviso.ativo,
     });
     setIsModalOpen(true);
@@ -176,9 +187,29 @@ const AnnouncementsView: React.FC<AnnouncementsViewProps> = ({
                     <h3 className="font-semibold text-slate-800 text-lg mb-2">
                       {aviso.titulo}
                     </h3>
+                    {aviso.imagem_url && (
+                      <div className="mb-3">
+                        <img
+                          src={aviso.imagem_url}
+                          alt={aviso.titulo}
+                          className="w-full max-h-48 object-cover rounded-lg border border-slate-200"
+                          loading="lazy"
+                        />
+                      </div>
+                    )}
                     <p className="text-slate-600 whitespace-pre-wrap leading-relaxed">
                       {aviso.mensagem}
                     </p>
+                    {aviso.link_url && (
+                      <a
+                        href={aviso.link_url}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="inline-flex items-center mt-3 text-indigo-600 font-semibold text-sm hover:underline"
+                      >
+                        Abrir link
+                      </a>
+                    )}
                     <p className="text-xs text-slate-400 mt-4 flex items-center gap-1">
                       <span className="w-1.5 h-1.5 rounded-full bg-slate-300"></span>
                       Criado em{" "}
@@ -359,6 +390,42 @@ const AnnouncementsView: React.FC<AnnouncementsViewProps> = ({
                   className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all shadow-sm"
                   rows={4}
                   placeholder="Digite a mensagem do aviso..."
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">
+                  Imagem (URL)
+                </label>
+                <input
+                  type="url"
+                  value={form.imagem_url}
+                  onChange={(e) =>
+                    setForm({ ...form, imagem_url: e.target.value })
+                  }
+                  className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all shadow-sm"
+                  placeholder="https://.../banner.jpg"
+                />
+                {form.imagem_url && (
+                  <div className="mt-3">
+                    <img
+                      src={form.imagem_url}
+                      alt="Preview do banner"
+                      className="w-full max-h-40 object-cover rounded-lg border border-slate-200"
+                      loading="lazy"
+                    />
+                  </div>
+                )}
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">
+                  Link (opcional)
+                </label>
+                <input
+                  type="url"
+                  value={form.link_url}
+                  onChange={(e) => setForm({ ...form, link_url: e.target.value })}
+                  className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all shadow-sm"
+                  placeholder="https://..."
                 />
               </div>
               <div className="flex items-center gap-3 p-3 bg-slate-50 rounded-lg border border-slate-100">

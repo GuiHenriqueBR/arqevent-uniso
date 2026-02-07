@@ -23,6 +23,7 @@ import StudentScanner from "./student/StudentScanner";
 import StudentProfile from "./student/StudentProfile";
 import StudentNav from "./student/StudentNav";
 import NotificationModal from "./student/NotificationModal";
+import LectureDetailsModal from "./student/LectureDetailsModal";
 import { StatusModal } from "./ui/StatusModal";
 
 interface StudentAppProps {
@@ -91,6 +92,8 @@ const StudentApp: React.FC<StudentAppProps> = ({ user, onLogout }) => {
   const [notificacoes, setNotificacoes] = useState<Notificacao[]>([]);
   const [notificacoesNaoLidas, setNotificacoesNaoLidas] = useState(0);
   const [showNotificacoes, setShowNotificacoes] = useState(false);
+  const [detailsPalestra, setDetailsPalestra] = useState<Palestra | null>(null);
+  const [detailsOpen, setDetailsOpen] = useState(false);
 
   // Load initial data
   useEffect(() => {
@@ -184,6 +187,11 @@ const StudentApp: React.FC<StudentAppProps> = ({ user, onLogout }) => {
     } catch (err: any) {
       showStatus("error", err.message);
     }
+  };
+
+  const handleViewDetails = (palestra: Palestra) => {
+    setDetailsPalestra(palestra);
+    setDetailsOpen(true);
   };
 
   const handleDownloadComprovanteInscricao = async (palestraId: string) => {
@@ -291,6 +299,7 @@ const StudentApp: React.FC<StudentAppProps> = ({ user, onLogout }) => {
                 onOpenNotificacoes={() => setShowNotificacoes(true)}
                 onInscreverEvento={handleInscreverEvento}
                 onInscreverPalestra={handleInscreverPalestra}
+                onViewDetails={handleViewDetails}
                 onOpenScanner={() => setActiveTab("scan")}
                 onDownloadComprovanteInscricao={
                   handleDownloadComprovanteInscricao
@@ -352,6 +361,17 @@ const StudentApp: React.FC<StudentAppProps> = ({ user, onLogout }) => {
         notificacoesNaoLidas={notificacoesNaoLidas}
         onMarcarLida={handleMarcarNotificacaoLida}
         onMarcarTodasLidas={handleMarcarTodasLidas}
+      />
+
+      <LectureDetailsModal
+        isOpen={detailsOpen}
+        onClose={() => setDetailsOpen(false)}
+        palestra={detailsPalestra}
+        eventoTitulo={
+          detailsPalestra
+            ? eventos.find((e) => e.id === detailsPalestra.evento_id)?.titulo
+            : undefined
+        }
       />
     </div>
   );
