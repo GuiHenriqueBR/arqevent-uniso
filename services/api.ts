@@ -464,10 +464,12 @@ export const palestrasApi = {
   regenerateQrCode: async (id: string) => {
     const newHash = generateQrHash();
 
-    await supabase
+    const { error } = await supabase
       .from("palestras")
       .update({ qr_code_hash: newHash })
       .eq("id", id);
+
+    if (error) throw new Error(`Erro ao regenerar QR Code: ${error.message}`);
 
     return palestrasApi.getQrCode(id);
   },

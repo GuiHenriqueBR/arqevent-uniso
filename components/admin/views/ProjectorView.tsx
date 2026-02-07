@@ -33,7 +33,7 @@ const ProjectorView: React.FC<ProjectorViewProps> = ({ lecture, onClose }) => {
     lecture.qr_expiration_seconds || DEFAULT_QR_EXPIRATION_SECONDS,
   );
   const [isRegenerating, setIsRegenerating] = useState(false);
-  const regenerationIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const isRegeneratingRef = useRef(false);
 
   const expirationSeconds =
     lecture.qr_expiration_seconds || DEFAULT_QR_EXPIRATION_SECONDS;
@@ -59,6 +59,8 @@ const ProjectorView: React.FC<ProjectorViewProps> = ({ lecture, onClose }) => {
 
   // Função para regenerar o QR Code
   const regenerateQrCode = useCallback(async () => {
+    if (isRegeneratingRef.current) return;
+    isRegeneratingRef.current = true;
     setIsRegenerating(true);
     try {
       const qrInfo = await palestrasApi.regenerateQrCode(lecture.id);
@@ -67,7 +69,9 @@ const ProjectorView: React.FC<ProjectorViewProps> = ({ lecture, onClose }) => {
       setQrError(null);
     } catch (err: any) {
       setQrError("Erro ao regenerar QR Code");
+      console.error("Erro regenerando QR:", err);
     } finally {
+      isRegeneratingRef.current = false;
       setIsRegenerating(false);
     }
   }, [lecture.id, expirationSeconds]);
@@ -79,7 +83,7 @@ const ProjectorView: React.FC<ProjectorViewProps> = ({ lecture, onClose }) => {
 
   // Timer de countdown e regeneração automática
   useEffect(() => {
-    regenerationIntervalRef.current = setInterval(() => {
+    const intervalId = setInterval(() => {
       setQrCountdown((prev) => {
         if (prev <= 1) {
           regenerateQrCode();
@@ -90,9 +94,7 @@ const ProjectorView: React.FC<ProjectorViewProps> = ({ lecture, onClose }) => {
     }, 1000);
 
     return () => {
-      if (regenerationIntervalRef.current) {
-        clearInterval(regenerationIntervalRef.current);
-      }
+      clearInterval(intervalId);
     };
   }, [regenerateQrCode, expirationSeconds]);
 
