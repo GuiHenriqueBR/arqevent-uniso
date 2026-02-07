@@ -14,6 +14,7 @@ export default defineConfig(({ mode }) => {
       react(),
       VitePWA({
         registerType: "prompt",
+        selfDestroying: true, // Remove service worker existente para evitar auto-reload
         includeAssets: ["favicon.ico", "icons/*.png"],
         manifest: {
           name: "ArqEvent UNISO",

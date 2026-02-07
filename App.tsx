@@ -149,15 +149,21 @@ const App: React.FC = () => {
     init();
 
     const { data: authListener } = supabase.auth.onAuthStateChange(
-      async (_event, session) => {
+      async (event, session) => {
         // Ignorar eventos até init() terminar para evitar race condition
         if (!mounted || !initialLoadDone) return;
+
+        // Ignorar eventos de refresh de token - não precisam recarregar o perfil
+        if (event === "TOKEN_REFRESHED") return;
 
         if (!isSupabaseConfigured) {
           setCurrentUser(null);
           setLoading(false);
           return;
         }
+
+        // Só recarregar perfil em SIGNED_IN ou SIGNED_OUT
+        if (event !== "SIGNED_IN" && event !== "SIGNED_OUT") return;
 
         // Só mostra loading se ainda não temos usuário
         if (!currentUser) {
