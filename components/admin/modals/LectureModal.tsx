@@ -111,7 +111,7 @@ const LectureModal: React.FC<LectureModalProps> = ({
 
     const timeoutId = window.setTimeout(() => {
       setError(
-        "Tempo limite ao salvar. Verifique sua conexão e tente novamente."
+        "Tempo limite ao salvar. Verifique sua conexão e tente novamente.",
       );
       setLoading(false);
     }, 15000);
@@ -124,7 +124,12 @@ const LectureModal: React.FC<LectureModalProps> = ({
           : form.carga_horaria;
 
       // Remover carga_unidade do payload (campo apenas de UI)
-      const { carga_unidade, carga_horaria, carga_horaria_minutos, ...formData } = form;
+      const {
+        carga_unidade,
+        carga_horaria,
+        carga_horaria_minutos,
+        ...formData
+      } = form;
 
       const basePayload = {
         ...formData,
@@ -165,7 +170,9 @@ const LectureModal: React.FC<LectureModalProps> = ({
             </div>
             <div>
               <h3 className="text-lg font-bold text-slate-800">
-                {mode === "create" ? `Nova ${tipoLabel}` : `Editar ${tipoLabel}`}
+                {mode === "create"
+                  ? `Nova ${tipoLabel}`
+                  : `Editar ${tipoLabel}`}
               </h3>
               <p className="text-xs text-slate-500">
                 {mode === "create"
@@ -288,7 +295,7 @@ const LectureModal: React.FC<LectureModalProps> = ({
                       onChange={(e) =>
                         setForm((prev) => {
                           const selected = palestrantes.find(
-                            (p) => p.id === e.target.value
+                            (p) => p.id === e.target.value,
                           );
                           return {
                             ...prev,
