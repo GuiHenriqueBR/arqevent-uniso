@@ -20,7 +20,7 @@ const AuthLayout: React.FC<AuthLayoutProps> = ({
             <img
               src={caausLogo}
               alt="CAAUS"
-              className="h-14 md:h-16 w-auto"
+              className="h-24 md:h-32 w-auto"
               loading="lazy"
             />
           </div>
