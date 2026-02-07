@@ -1,4 +1,11 @@
-import React, { useEffect, useMemo, useState, Suspense, lazy } from "react";
+import React, {
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  Suspense,
+  lazy,
+} from "react";
 import { UserType, User } from "./types";
 import { supabase, isSupabaseConfigured } from "./supabaseClient";
 
@@ -30,11 +37,16 @@ const App: React.FC = () => {
   const [authMode, setAuthMode] = useState<
     "signIn" | "signUp" | "forgot" | "updatePassword"
   >("signIn");
+  const currentUserRef = useRef<User | null>(null);
 
   const isRecovery = useMemo(() => {
     const hash = window.location.hash;
     return hash.includes("type=recovery");
   }, []);
+
+  useEffect(() => {
+    currentUserRef.current = currentUser;
+  }, [currentUser]);
 
   const mapProfileToUser = (profile: ProfileRow): User => ({
     id: profile.id,
@@ -125,6 +137,7 @@ const App: React.FC = () => {
   useEffect(() => {
     let mounted = true;
     let initialLoadDone = false;
+    let loadingGuardId: number | null = null;
 
     const init = async () => {
       if (!isSupabaseConfigured) {
@@ -132,8 +145,16 @@ const App: React.FC = () => {
         return;
       }
 
+      // Fallback para evitar loading infinito se a sessao travar
+      loadingGuardId = window.setTimeout(() => {
+        if (mounted) {
+          console.warn("Timeout ao iniciar sessao. Continuando sem loading.");
+          setLoading(false);
+        }
+      }, 12000);
+
       try {
-        const { data } = await supabase.auth.getSession();
+        const { data } = await withTimeout(supabase.auth.getSession(), 10000);
         const session = data.session;
         if (session?.user?.id && mounted) {
           await loadProfile(session.user.id, session.user.email);
@@ -142,6 +163,10 @@ const App: React.FC = () => {
         console.error("Erro ao obter sessão:", err);
       } finally {
         initialLoadDone = true;
+        if (loadingGuardId !== null) {
+          window.clearTimeout(loadingGuardId);
+          loadingGuardId = null;
+        }
         if (mounted) setLoading(false);
       }
     };
@@ -165,24 +190,37 @@ const App: React.FC = () => {
         // Só recarregar perfil em SIGNED_IN ou SIGNED_OUT
         if (event !== "SIGNED_IN" && event !== "SIGNED_OUT") return;
 
-        // Só mostra loading se ainda não temos usuário
-        if (!currentUser) {
-          setLoading(true);
-        }
+        const existingUser = currentUserRef.current;
+        const sessionUserId = session?.user?.id ?? null;
 
-        if (!session?.user?.id) {
+        if (!sessionUserId) {
           setCurrentUser(null);
           setLoading(false);
           return;
         }
 
-        await loadProfile(session.user.id, session.user.email);
-        if (mounted) setLoading(false);
+        // Se ja temos usuario, atualiza em background sem travar a UI
+        if (existingUser && existingUser.id === sessionUserId) {
+          loadProfile(sessionUserId, session?.user?.email).catch((err) => {
+            console.error("Erro ao atualizar perfil em background:", err);
+          });
+          return;
+        }
+
+        setLoading(true);
+        try {
+          await loadProfile(sessionUserId, session?.user?.email);
+        } finally {
+          if (mounted) setLoading(false);
+        }
       },
     );
 
     return () => {
       mounted = false;
+      if (loadingGuardId !== null) {
+        window.clearTimeout(loadingGuardId);
+      }
       authListener.subscription.unsubscribe();
     };
   }, []);
