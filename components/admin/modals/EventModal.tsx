@@ -214,7 +214,7 @@ const EventModal: React.FC<EventModalProps> = ({
 
           {error && (
             <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm flex items-center gap-2">
-              <AlertCircle className="w-4 h-4 flex-shrink-0" />
+              <AlertCircle className="w-4 h-4 shrink-0" />
               {error}
             </div>
           )}

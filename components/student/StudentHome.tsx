@@ -280,7 +280,7 @@ const StudentHome: React.FC<StudentHomeProps> = ({
             
             <div className="grid grid-cols-1 gap-4">
               {happeningNow.map(palestra => (
-                <AnimatedCard key={palestra.id} className="bg-gradient-to-r from-slate-900 to-slate-800 text-white border-0 shadow-xl shadow-slate-200 relative overflow-hidden group">
+                <AnimatedCard key={palestra.id} className="bg-linear-to-r from-slate-900 to-slate-800 text-white border-0 shadow-xl shadow-slate-200 relative overflow-hidden group">
                   <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20 brightness-100 contrast-150"></div>
                   <div className="absolute right-0 top-0 w-64 h-64 bg-rose-500/20 rounded-full blur-3xl -mr-16 -mt-16 group-hover:bg-rose-500/30 transition-all duration-700"></div>
                   
