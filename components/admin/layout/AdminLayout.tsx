@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { User, Aviso } from "../../../types";
 import AdminSidebar from "./AdminSidebar";
 import { Menu } from "lucide-react";
+import caausLogo from "../../../imagens/caaus-logo.png";
 
 interface AdminLayoutProps {
   children: React.ReactNode;
@@ -48,7 +49,11 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({
             >
               <Menu className="w-6 h-6" />
             </button>
-            <span className="font-semibold text-slate-800">ArqEvent</span>
+            <img
+              src={caausLogo}
+              alt="CAAUS"
+              className="h-8 w-auto"
+            />
           </div>
           <div className="w-8 h-8 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-700 font-bold text-xs">
             {user.nome.charAt(0)}

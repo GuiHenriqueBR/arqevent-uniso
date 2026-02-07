@@ -9,6 +9,7 @@ import {
   LogOut,
 } from "lucide-react";
 import { User } from "../../../types";
+import caausLogo from "../../../imagens/caaus-logo.png";
 
 interface AdminSidebarProps {
   activeView:
@@ -66,10 +67,8 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({
       >
         <div className="flex flex-col h-full">
           {/* Header */}
-          <div className="h-16 flex items-center justify-between px-6 border-b border-slate-800">
-            <h1 className="text-white font-bold text-xl tracking-tight">
-              ArqEvent <span className="text-indigo-500">UNISO</span>
-            </h1>
+          <div className="h-20 flex items-center justify-between px-6 border-b border-slate-800">
+            <img src={caausLogo} alt="CAAUS" className="h-10 w-auto" />
             <button
               onClick={onClose}
               className="p-1 rounded-md text-slate-400 hover:text-white lg:hidden"
