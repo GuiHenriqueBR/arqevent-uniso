@@ -66,7 +66,13 @@ const DashboardView: React.FC<DashboardViewProps> = ({
     );
   }
 
-  const statCards = [
+  const statCards: Array<{
+    label: string;
+    value: number;
+    color: string;
+    icon: React.ElementType;
+    action?: () => void;
+  }> = [
     {
       label: "Eventos Ativos",
       value: stats?.eventos.ativos || 0,

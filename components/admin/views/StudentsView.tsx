@@ -379,7 +379,7 @@ const StudentsView: React.FC<StudentsViewProps> = ({
             </div>
 
             <div className="p-6 overflow-y-auto bg-slate-50/50">
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
                 <div className="bg-white p-4 rounded-xl text-center shadow-sm border border-slate-100 group hover:border-indigo-100 transition-colors">
                   <p className="text-slate-500 text-[10px] uppercase font-bold tracking-wider mb-1">
                     Presença Total
@@ -400,14 +400,6 @@ const StudentsView: React.FC<StudentsViewProps> = ({
                   </p>
                   <p className="text-2xl font-bold text-indigo-600">
                     {selectedStudent.cargaHoraria || 0}h
-                  </p>
-                </div>
-                <div className="bg-white p-4 rounded-xl text-center shadow-sm border border-slate-100 group hover:border-indigo-100 transition-colors">
-                  <p className="text-slate-500 text-[10px] uppercase font-bold tracking-wider mb-1">
-                    Certificados
-                  </p>
-                  <p className="text-2xl font-bold text-orange-500">
-                    {selectedStudent.certificados || 0}
                   </p>
                 </div>
               </div>

@@ -67,8 +67,10 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({
       >
         <div className="flex flex-col h-full">
           {/* Header */}
-          <div className="h-20 flex items-center justify-between px-6 border-b border-slate-800">
-            <img src={caausLogo} alt="CAAUS" className="h-10 w-auto" />
+          <div className="h-24 flex items-center justify-between px-6 border-b border-slate-800">
+            <div className="bg-white/90 border border-white/10 shadow-sm rounded-lg px-4 py-3">
+              <img src={caausLogo} alt="CAAUS" className="h-16 w-auto" />
+            </div>
             <button
               onClick={onClose}
               className="p-1 rounded-md text-slate-400 hover:text-white lg:hidden"
