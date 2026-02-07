@@ -12,7 +12,6 @@ import {
 import {
   Calendar,
   Users,
-  Award,
   GraduationCap,
   Loader2,
   AlertTriangle,
@@ -83,13 +82,6 @@ const DashboardView: React.FC<DashboardViewProps> = ({
       action: () => onNavigate("students"),
     },
     {
-      label: "Certificados Emitidos",
-      value: stats?.certificados.total || 0,
-      color: "border-l-4 border-orange-500",
-      icon: Award,
-      action: undefined,
-    },
-    {
       label: "Palestras/Atividades",
       value: stats?.palestras.total || 0,
       color: "border-l-4 border-indigo-500",
@@ -123,7 +115,7 @@ const DashboardView: React.FC<DashboardViewProps> = ({
       </div>
 
       {/* Stats Grid */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-6">
         {statCards.map((stat, i) => (
           <Card
             key={i}
@@ -397,7 +389,7 @@ const DashboardView: React.FC<DashboardViewProps> = ({
       {/* System Summary (Footer) */}
       <div className="bg-linear-to-r from-indigo-600 to-purple-600 rounded-xl p-6 text-white shadow-lg">
         <h3 className="font-bold text-lg mb-4 opacity-90">Resumo do Sistema</h3>
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-6 text-sm">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 text-sm">
           <div>
             <p className="opacity-75 mb-1">Total de Eventos</p>
             <p className="text-3xl font-bold tracking-tight">
@@ -414,12 +406,6 @@ const DashboardView: React.FC<DashboardViewProps> = ({
             <p className="opacity-75 mb-1">Palestras</p>
             <p className="text-3xl font-bold tracking-tight">
               {stats?.palestras.total || 0}
-            </p>
-          </div>
-          <div>
-            <p className="opacity-75 mb-1">Certificados</p>
-            <p className="text-3xl font-bold tracking-tight">
-              {stats?.certificados.total || 0}
             </p>
           </div>
         </div>
