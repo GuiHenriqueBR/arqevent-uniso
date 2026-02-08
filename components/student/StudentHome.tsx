@@ -73,6 +73,8 @@ const StudentHome: React.FC<StudentHomeProps> = ({
     "todos" | "palestras" | "atividades" | "inscricoes"
   >("todos");
 
+  const mainListRef = React.useRef<HTMLDivElement>(null);
+
   const now = new Date();
   const bannerAvisos = avisos.filter((a) => a.imagem_url);
 
@@ -475,7 +477,10 @@ const StudentHome: React.FC<StudentHomeProps> = ({
               Próximas Atividades
             </h3>
             <button
-              onClick={() => setActiveFilter("todos")}
+              onClick={() => {
+                setActiveFilter("todos");
+                setTimeout(() => mainListRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }), 100);
+              }}
               className="text-xs text-indigo-600 font-semibold flex items-center gap-0.5 hover:underline"
             >
               Ver todas <ChevronRight className="w-3 h-3" />
@@ -527,7 +532,7 @@ const StudentHome: React.FC<StudentHomeProps> = ({
       )}
 
       {/* Main List with Filters */}
-      <div className="space-y-4 min-h-100">
+      <div ref={mainListRef} className="space-y-4 min-h-100">
         <div className="flex gap-2 overflow-x-auto pb-2 -mx-4 px-4 sm:mx-0 sm:px-0 hide-scrollbar scroll-smooth">
           <FilterChip
             label="Tudo"
