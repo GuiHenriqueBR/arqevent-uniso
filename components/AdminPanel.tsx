@@ -335,6 +335,7 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ user, onLogout }) => {
         palestrante_id: data.palestrante_id || null,
         palestrante_nome: data.palestrante_nome?.trim() || null,
         qr_expiration_seconds: data.qr_expiration_seconds || 60,
+        semestres_permitidos: data.semestres_permitidos || null,
       };
       console.log("[DEBUG] Payload formatado:", payload);
       const nova = await palestrasApi.create(data.evento_id, payload);
@@ -357,6 +358,7 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ user, onLogout }) => {
       palestrante_nome: data.palestrante_nome?.trim() || null,
       carga_horaria_minutos: data.carga_horaria_minutos || null,
       qr_expiration_seconds: data.qr_expiration_seconds || 60,
+      semestres_permitidos: data.semestres_permitidos || null,
     });
     setPalestras(palestras.map((p) => (p.id === updated.id ? updated : p)));
   };

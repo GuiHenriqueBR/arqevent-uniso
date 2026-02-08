@@ -19,6 +19,7 @@ import { motion, AnimatePresence } from "framer-motion";
 
 // Components
 import StudentHome from "./student/StudentHome";
+import StudentCalendar from "./student/StudentCalendar";
 import StudentScanner from "./student/StudentScanner";
 import StudentProfile from "./student/StudentProfile";
 import StudentNav from "./student/StudentNav";
@@ -32,9 +33,9 @@ interface StudentAppProps {
 }
 
 const StudentApp: React.FC<StudentAppProps> = ({ user, onLogout }) => {
-  const [activeTab, setActiveTab] = useState<"home" | "scan" | "profile">(
-    "home",
-  );
+  const [activeTab, setActiveTab] = useState<
+    "home" | "calendar" | "scan" | "profile"
+  >("home");
 
   // Status Modal State
   const [statusModal, setStatusModal] = useState<{
@@ -311,6 +312,27 @@ const StudentApp: React.FC<StudentAppProps> = ({ user, onLogout }) => {
             </motion.div>
           )}
 
+          {activeTab === "calendar" && (
+            <motion.div
+              key="calendar"
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: 20 }}
+              transition={{ duration: 0.2 }}
+              className="min-h-full"
+            >
+              <StudentCalendar
+                eventos={eventos}
+                palestras={palestrasEvento}
+                minhasInscricoes={minhasInscricoes}
+                userSemestre={currentUser.semestre}
+                onViewDetails={handleViewDetails}
+                onInscreverPalestra={handleInscreverPalestra}
+                loading={loading}
+              />
+            </motion.div>
+          )}
+
           {activeTab === "scan" && (
             <motion.div
               key="scan"
@@ -392,6 +414,7 @@ const StudentApp: React.FC<StudentAppProps> = ({ user, onLogout }) => {
             setDetailsOpen(false);
           }
         }}
+        userSemestre={currentUser.semestre}
       />
     </div>
   );

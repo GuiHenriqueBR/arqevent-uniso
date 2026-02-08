@@ -104,9 +104,9 @@ const StudentScanner: React.FC<StudentScannerProps> = ({
       setError(null);
       // Primeiro ativar para renderizar o div qr-reader
       setIsActive(true);
-      
+
       // Aguardar próximo tick para o DOM atualizar
-      await new Promise(resolve => setTimeout(resolve, 100));
+      await new Promise((resolve) => setTimeout(resolve, 100));
 
       if (!html5QrCodeRef.current) {
         html5QrCodeRef.current = new Html5Qrcode("qr-reader");
@@ -267,7 +267,7 @@ const StudentScanner: React.FC<StudentScannerProps> = ({
             animate={{ scale: 1 }}
             className="bg-white p-6 rounded-full shadow-xl mb-8"
           >
-            <QrCode className="w-16 h-16 text-indigo-600" />
+            <QrCode className="w-16 h-16 text-slate-900" />
           </motion.div>
           <h2 className="text-2xl font-bold text-slate-800 mb-2">
             Leitor de Presença

@@ -67,6 +67,7 @@ export class PalestrasService {
         vagas: dto.vagas || 50,
         carga_horaria: dto.carga_horaria || 1,
         palestrante_id: dto.palestrante_id,
+        semestres_permitidos: dto.semestres_permitidos ?? null,
         qr_code_hash,
       },
     });
@@ -101,6 +102,7 @@ export class PalestrasService {
         vagas: dto.vagas,
         carga_horaria: dto.carga_horaria,
         palestrante_id: dto.palestrante_id,
+        semestres_permitidos: dto.semestres_permitidos,
       },
     });
 

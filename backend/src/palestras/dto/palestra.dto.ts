@@ -42,6 +42,10 @@ export class CreatePalestraDto {
   @IsOptional()
   @IsUUID()
   palestrante_id?: string;
+
+  @IsOptional()
+  @IsString()
+  semestres_permitidos?: string;
 }
 
 export class UpdatePalestraDto {
@@ -78,4 +82,8 @@ export class UpdatePalestraDto {
   @IsOptional()
   @IsUUID()
   palestrante_id?: string;
+
+  @IsOptional()
+  @IsString()
+  semestres_permitidos?: string;
 }

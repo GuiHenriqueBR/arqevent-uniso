@@ -9,6 +9,7 @@ import {
   CheckCircle,
   FileText,
   ChevronRight,
+  GraduationCap,
 } from "lucide-react";
 import { Palestra, formatCargaHoraria } from "../../services/api";
 
@@ -20,6 +21,7 @@ interface LectureDetailsModalProps {
   isInscrito?: boolean;
   isInscritoEvento?: boolean;
   onInscrever?: () => void;
+  userSemestre?: string;
 }
 
 const LectureDetailsModal: React.FC<LectureDetailsModalProps> = ({
@@ -30,11 +32,32 @@ const LectureDetailsModal: React.FC<LectureDetailsModalProps> = ({
   isInscrito = false,
   isInscritoEvento = false,
   onInscrever,
+  userSemestre,
 }) => {
   if (!isOpen || !palestra) return null;
 
   const palestranteNome =
     palestra.palestrante_nome || palestra.palestrante?.nome || "Palestrante";
+
+  // Parse semestres
+  const parseSemestresPermitidos = (raw?: string | null): number[] | null => {
+    if (!raw) return null;
+    try {
+      const arr = JSON.parse(raw);
+      return Array.isArray(arr) && arr.length > 0 ? arr : null;
+    } catch {
+      return null;
+    }
+  };
+
+  const parseSemestre = (sem?: string): number | null => {
+    if (!sem) return null;
+    const match = sem.match(/(\d+)/);
+    return match ? parseInt(match[1]) : null;
+  };
+
+  const semestres = parseSemestresPermitidos(palestra.semestres_permitidos);
+  const userSem = parseSemestre(userSemestre);
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50 animate-in fade-in backdrop-blur-sm">
@@ -151,6 +174,36 @@ const LectureDetailsModal: React.FC<LectureDetailsModalProps> = ({
                 </p>
               </div>
             </div>
+
+            <div className="flex items-start gap-3 p-3 bg-slate-50 rounded-lg border border-slate-100 sm:col-span-2">
+              <GraduationCap className="w-5 h-5 text-indigo-500 mt-0.5" />
+              <div>
+                <p className="text-xs text-slate-500">Semestres</p>
+                {semestres === null ? (
+                  <p className="text-sm font-medium text-slate-800">
+                    Todos os semestres
+                  </p>
+                ) : (
+                  <div className="flex flex-wrap gap-1 mt-1">
+                    {semestres.map((sem) => {
+                      const isUserSem = userSem === sem;
+                      return (
+                        <span
+                          key={sem}
+                          className={`text-xs font-bold px-2 py-0.5 rounded ${
+                            isUserSem
+                              ? "bg-indigo-500 text-white"
+                              : "bg-slate-200 text-slate-600"
+                          }`}
+                        >
+                          {sem}º Sem
+                        </span>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+            </div>
           </div>
         </div>
 
@@ -178,7 +231,7 @@ const LectureDetailsModal: React.FC<LectureDetailsModalProps> = ({
               </button>
               <button
                 onClick={onInscrever}
-                className="px-5 py-2.5 bg-indigo-600 text-white hover:bg-indigo-700 rounded-lg font-bold transition-colors text-sm flex items-center gap-1.5 shadow-sm"
+                className="px-5 py-2.5 bg-slate-900 text-white hover:bg-slate-800 rounded-lg font-bold transition-colors text-sm flex items-center gap-1.5 shadow-sm"
               >
                 Inscrever-se <ChevronRight className="w-4 h-4" />
               </button>

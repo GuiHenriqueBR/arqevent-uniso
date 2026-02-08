@@ -33,6 +33,21 @@ enum StatusInscricao {
   CANCELADA
 }
 
+enum StatusFila {
+  CONFIRMADO
+  LISTA_ESPERA
+  CANCELADO
+}
+
+enum StatusPresenca {
+  INSCRITO
+  PRESENTE
+  AUSENTE
+  WALK_IN
+  ATRASADO
+  JUSTIFICADO
+}
+
 enum TipoCertificado {
   PARTICIPACAO
   PALESTRANTE
@@ -86,21 +101,29 @@ model Evento {
   @@map("eventos")
 }
 
+enum TipoPalestra {
+  PALESTRA
+  ATIVIDADE
+}
+
 model Palestra {
-  id                    String    @id @default(uuid())
+  id                    String        @id @default(uuid())
   evento_id             String
   titulo                String
   descricao             String?
+  tipo                  TipoPalestra  @default(PALESTRA)
   data_hora_inicio      DateTime
   data_hora_fim         DateTime
   sala                  String?
-  vagas                 Int       @default(50)
-  carga_horaria         Int       @default(1)
+  vagas                 Int           @default(50)
+  carga_horaria         Int           @default(1)
   carga_horaria_minutos Int?
   palestrante_id        String?
-  qr_code_hash          String?   @unique
-  qr_expiration_seconds Int       @default(60)
-  created_at            DateTime  @default(now())
+  palestrante_nome      String?
+  qr_code_hash          String?       @unique
+  qr_expiration_seconds Int           @default(60)
+  semestres_permitidos String?        // JSON array e.g. "[1,3,5]" or null = todos
+  created_at            DateTime      @default(now())
 
   evento          Evento    @relation(fields: [evento_id], references: [id], onDelete: Cascade)
   palestrante     Usuario?  @relation(fields: [palestrante_id], references: [id])
@@ -130,13 +153,17 @@ model InscricaoEvento {
 }
 
 model InscricaoPalestra {
-  id              String    @id @default(uuid())
+  id              String          @id @default(uuid())
   usuario_id      String
   palestra_id     String
-  data_inscricao  DateTime  @default(now())
-  presente        Boolean   @default(false)
+  data_inscricao  DateTime        @default(now())
+  presente        Boolean         @default(false)
   data_presenca   DateTime?
   qr_validado_por String?
+  status_fila     StatusFila      @default(CONFIRMADO)
+  posicao_fila    Int?
+  status_presenca StatusPresenca  @default(INSCRITO)
+  is_walk_in      Boolean         @default(false)
 
   usuario         Usuario   @relation(fields: [usuario_id], references: [id])
   palestra        Palestra  @relation(fields: [palestra_id], references: [id])
@@ -146,6 +173,8 @@ model InscricaoPalestra {
   @@index([usuario_id])
   @@index([palestra_id])
   @@index([presente])
+  @@index([status_fila])
+  @@index([status_presenca])
   @@map("inscricoes_palestra")
 }
 

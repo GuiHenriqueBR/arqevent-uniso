@@ -410,62 +410,90 @@ const StudentHome: React.FC<StudentHomeProps> = ({
         )}
       </AnimatePresence>
 
-      {/* Hero Event */}
+      {/* Hero Event — Instagram-style Post */}
       {!loading && eventoSelecionado && happeningNow.length === 0 && (
-        <AnimatedCard className="bg-slate-900 border-none text-white shadow-xl shadow-slate-900/20 relative overflow-hidden min-h-48 flex flex-col justify-center">
-          {eventoSelecionado.banner_url && (
-            <div className="absolute inset-0">
+        <div className="rounded-2xl overflow-hidden shadow-xl shadow-slate-900/15 border border-slate-100">
+          {/* Image Section — Full visual like an IG post */}
+          <div className="relative aspect-4/3 sm:aspect-video bg-slate-900 overflow-hidden group">
+            {eventoSelecionado.banner_url ? (
               <img
                 src={eventoSelecionado.banner_url}
                 alt={eventoSelecionado.titulo}
-                className="w-full h-full object-cover opacity-20 mix-blend-overlay"
+                className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
                 loading="lazy"
               />
-              <div className="absolute inset-0 bg-slate-900/60"></div>
-            </div>
-          )}
+            ) : (
+              /* Fallback visual when no banner */
+              <div className="absolute inset-0 bg-linear-to-br from-slate-800 via-slate-900 to-slate-950">
+                <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-30"></div>
+                <div className="absolute -right-20 -top-20 w-80 h-80 bg-indigo-500/10 rounded-full blur-3xl"></div>
+                <div className="absolute -left-10 -bottom-10 w-60 h-60 bg-emerald-500/10 rounded-full blur-3xl"></div>
+              </div>
+            )}
 
-          <div className="relative z-10 p-6">
-            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-6">
-              <div className="flex-1">
-                <span className="text-slate-300 text-xs font-medium mb-3 flex items-center gap-2 uppercase tracking-wide">
-                  <CalendarDays className="w-3.5 h-3.5" />
-                  {new Date(eventoSelecionado.data_inicio).toLocaleDateString(
-                    "pt-BR",
-                    { weekday: "long", day: "numeric", month: "long" },
-                  )}
+            {/* Gradient overlays for text readability */}
+            <div className="absolute inset-0 bg-linear-to-t from-black/80 via-black/20 to-transparent"></div>
+            <div className="absolute inset-0 bg-linear-to-r from-black/30 to-transparent"></div>
+
+            {/* Top badges */}
+            <div className="absolute top-3 left-3 right-3 flex justify-between items-start z-10">
+              <span className="bg-white/15 backdrop-blur-md text-white text-[10px] font-bold px-3 py-1.5 rounded-full uppercase tracking-wider flex items-center gap-1.5 border border-white/20">
+                <CalendarDays className="w-3 h-3" />
+                {new Date(eventoSelecionado.data_inicio)
+                  .toLocaleDateString("pt-BR", {
+                    day: "numeric",
+                    month: "short",
+                  })
+                  .toUpperCase()}
+              </span>
+              {eventoSelecionado.local && (
+                <span className="bg-white/15 backdrop-blur-md text-white text-[10px] font-bold px-3 py-1.5 rounded-full flex items-center gap-1.5 border border-white/20">
+                  <MapPin className="w-3 h-3" />
+                  {eventoSelecionado.local}
                 </span>
-                <h2 className="text-2xl sm:text-3xl font-bold mb-2 leading-tight tracking-tight text-white">
-                  {eventoSelecionado.titulo}
-                </h2>
-                <div className="flex items-center gap-2 text-slate-300 text-sm font-medium mb-4">
-                  <MapPin className="w-4 h-4" />
-                  {eventoSelecionado.local || "Auditório Principal"}
-                </div>
+              )}
+            </div>
 
-                <div className="scale-90 origin-left">
-                  <CountdownTimer targetDate={eventoSelecionado.data_inicio} />
-                </div>
+            {/* Bottom content over image */}
+            <div className="absolute bottom-0 left-0 right-0 p-5 sm:p-6 z-10">
+              <h2 className="text-2xl sm:text-3xl font-black mb-1.5 leading-tight tracking-tight text-white drop-shadow-lg">
+                {eventoSelecionado.titulo}
+              </h2>
+              {eventoSelecionado.descricao && (
+                <p className="text-white/80 text-sm leading-relaxed line-clamp-2 max-w-lg drop-shadow-md">
+                  {eventoSelecionado.descricao}
+                </p>
+              )}
+            </div>
+          </div>
+
+          {/* Footer — Action bar */}
+          <div className="bg-white p-4 sm:p-5">
+            <div className="flex items-center justify-between gap-4">
+              {/* Countdown */}
+              <div className="flex items-center gap-3">
+                <CountdownTimer targetDate={eventoSelecionado.data_inicio} />
               </div>
 
-              <div className="w-full sm:w-auto">
+              {/* CTA Button */}
+              <div className="shrink-0">
                 {!isInscritoEvento(eventoSelecionado.id) ? (
                   <TactileButton
                     onClick={() => onInscreverEvento(eventoSelecionado.id)}
-                    className="bg-white text-slate-900 hover:bg-slate-50 w-full sm:w-auto font-bold border-none px-6 py-3 text-sm shadow-lg shadow-black/10 transition-transform"
+                    className="bg-slate-900 text-white hover:bg-slate-800 font-bold border-none px-5 py-2.5 text-sm shadow-md shadow-slate-900/20 rounded-xl"
                   >
                     Garantir Vaga
                   </TactileButton>
                 ) : (
-                  <div className="bg-slate-800/50 text-slate-200 px-5 py-2.5 rounded-lg font-medium text-sm w-full sm:w-auto text-center flex items-center justify-center gap-2 border border-slate-700/50 backdrop-blur-sm">
+                  <div className="bg-emerald-50 text-emerald-700 px-4 py-2.5 rounded-xl font-semibold text-sm flex items-center gap-2 border border-emerald-100">
                     <CheckCircle className="w-4 h-4" />
-                    Inscrição Confirmada
+                    Inscrito
                   </div>
                 )}
               </div>
             </div>
           </div>
-        </AnimatedCard>
+        </div>
       )}
 
       {/* Upcoming Horizontal Scroll */}
@@ -841,33 +869,13 @@ const CountdownTimer: React.FC<{ targetDate: string }> = ({ targetDate }) => {
     return null;
 
   return (
-    <div className="flex gap-2 sm:gap-4 mt-3">
-      <div className="text-center">
-        <span className="block text-xl sm:text-2xl font-bold font-mono">
-          {timeLeft.days}
-        </span>
-        <span className="text-[10px] text-indigo-200 uppercase tracking-wider">
-          Dias
-        </span>
-      </div>
-      <div className="text-xl sm:text-2xl font-bold opacity-50">:</div>
-      <div className="text-center">
-        <span className="block text-xl sm:text-2xl font-bold font-mono">
-          {timeLeft.hours}
-        </span>
-        <span className="text-[10px] text-indigo-200 uppercase tracking-wider">
-          Horas
-        </span>
-      </div>
-      <div className="text-xl sm:text-2xl font-bold opacity-50">:</div>
-      <div className="text-center">
-        <span className="block text-xl sm:text-2xl font-bold font-mono">
-          {timeLeft.minutes}
-        </span>
-        <span className="text-[10px] text-indigo-200 uppercase tracking-wider">
-          Min
-        </span>
-      </div>
+    <div className="flex items-center gap-1.5 text-sm">
+      <Timer className="w-4 h-4 text-slate-400" />
+      <span className="font-bold text-slate-800 tabular-nums">
+        {timeLeft.days}d {String(timeLeft.hours).padStart(2, "0")}h{" "}
+        {String(timeLeft.minutes).padStart(2, "0")}m
+      </span>
+      <span className="text-slate-400 text-xs font-medium">restantes</span>
     </div>
   );
 };

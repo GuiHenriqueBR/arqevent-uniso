@@ -84,6 +84,7 @@ export interface Palestra {
   palestrante_nome?: string;
   qr_code_hash?: string;
   qr_expiration_seconds?: number;
+  semestres_permitidos?: string | null;
   created_at: string;
   palestrante?: { nome: string };
 }

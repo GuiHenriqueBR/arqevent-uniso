@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { X, AlertCircle, Loader2 } from "lucide-react";
+import { X, AlertCircle, Loader2, ImagePlus, Trash2, Eye } from "lucide-react";
 import { Evento } from "../../../services/api";
 
 interface EventModalProps {
@@ -23,11 +23,14 @@ const EventModal: React.FC<EventModalProps> = ({
     data_inicio: "",
     data_fim: "",
     local: "",
+    banner_url: "",
     vagas_totais: 100,
     turno_permitido: "TODOS" as "TODOS" | "MANHA" | "NOITE",
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [showBannerPreview, setShowBannerPreview] = useState(false);
+  const [bannerError, setBannerError] = useState(false);
 
   useEffect(() => {
     if (initialData && mode === "edit") {
@@ -39,12 +42,14 @@ const EventModal: React.FC<EventModalProps> = ({
           .slice(0, 16),
         data_fim: new Date(initialData.data_fim).toISOString().slice(0, 16),
         local: initialData.local || "",
+        banner_url: initialData.banner_url || "",
         vagas_totais: initialData.vagas_totais,
         turno_permitido: initialData.turno_permitido as
           | "TODOS"
           | "MANHA"
           | "NOITE",
       });
+      setShowBannerPreview(!!initialData.banner_url);
     } else {
       setForm({
         titulo: "",
@@ -52,10 +57,13 @@ const EventModal: React.FC<EventModalProps> = ({
         data_inicio: "",
         data_fim: "",
         local: "",
+        banner_url: "",
         vagas_totais: 100,
         turno_permitido: "TODOS",
       });
+      setShowBannerPreview(false);
     }
+    setBannerError(false);
     setError(null);
   }, [initialData, mode, isOpen]);
 
@@ -118,17 +126,133 @@ const EventModal: React.FC<EventModalProps> = ({
               placeholder="Ex: Semana de Arquitetura 2026"
             />
           </div>
+          {/* Banner do Evento */}
+          <div>
+            <label className="block text-sm font-medium text-slate-700 mb-1">
+              Banner / Imagem de Capa
+            </label>
+            <div className="space-y-2">
+              <div className="flex gap-2">
+                <div className="relative flex-1">
+                  <ImagePlus className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                  <input
+                    type="url"
+                    value={form.banner_url}
+                    onChange={(e) => {
+                      setForm({ ...form, banner_url: e.target.value });
+                      setBannerError(false);
+                      setShowBannerPreview(!!e.target.value);
+                    }}
+                    className="w-full pl-10 pr-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-shadow text-sm"
+                    placeholder="https://exemplo.com/banner.jpg"
+                  />
+                </div>
+                {form.banner_url && (
+                  <button
+                    type="button"
+                    onClick={() => setShowBannerPreview(!showBannerPreview)}
+                    className="px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-lg transition-colors"
+                    title="Visualizar"
+                  >
+                    <Eye className="w-4 h-4" />
+                  </button>
+                )}
+                {form.banner_url && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setForm({ ...form, banner_url: "" });
+                      setShowBannerPreview(false);
+                      setBannerError(false);
+                    }}
+                    className="px-3 py-2 bg-red-50 hover:bg-red-100 text-red-500 rounded-lg transition-colors"
+                    title="Remover"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                )}
+              </div>
+
+              {/* Banner Preview */}
+              {showBannerPreview && form.banner_url && (
+                <div className="relative rounded-xl overflow-hidden border border-slate-200 bg-slate-900 aspect-video">
+                  {!bannerError ? (
+                    <img
+                      src={form.banner_url}
+                      alt="Preview do banner"
+                      className="w-full h-full object-cover"
+                      onError={() => setBannerError(true)}
+                    />
+                  ) : (
+                    <div className="flex flex-col items-center justify-center h-full text-slate-400 gap-2">
+                      <AlertCircle className="w-8 h-8" />
+                      <span className="text-xs">
+                        Não foi possível carregar a imagem
+                      </span>
+                      <span className="text-[10px] text-slate-500">
+                        Verifique se a URL está correta
+                      </span>
+                    </div>
+                  )}
+                  {/* Simulated overlay like the student view */}
+                  {!bannerError && (
+                    <div className="absolute bottom-0 left-0 right-0 bg-linear-to-t from-black/70 via-black/20 to-transparent p-3">
+                      <p className="text-white text-xs font-bold truncate">
+                        {form.titulo || "Título do Evento"}
+                      </p>
+                      {form.descricao && (
+                        <p className="text-white/70 text-[10px] truncate mt-0.5">
+                          {form.descricao}
+                        </p>
+                      )}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              <p className="text-[11px] text-slate-400">
+                Cole a URL de uma imagem. Dica: use o{" "}
+                <a
+                  href="https://postimages.org/"
+                  target="_blank"
+                  rel="noreferrer"
+                  className="text-indigo-500 hover:underline"
+                >
+                  PostImages
+                </a>{" "}
+                ou{" "}
+                <a
+                  href="https://imgur.com/"
+                  target="_blank"
+                  rel="noreferrer"
+                  className="text-indigo-500 hover:underline"
+                >
+                  Imgur
+                </a>{" "}
+                para hospedar sua imagem gratuitamente.
+              </p>
+            </div>
+          </div>
+
           <div>
             <label className="block text-sm font-medium text-slate-700 mb-1">
               Descrição
+              <span className="text-slate-400 font-normal ml-1 text-xs">
+                (aparece no banner para os alunos)
+              </span>
             </label>
             <textarea
               value={form.descricao}
               onChange={(e) => setForm({ ...form, descricao: e.target.value })}
               className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-shadow"
               rows={3}
-              placeholder="Descrição do evento..."
+              placeholder="Ex: Venha participar da maior semana acadêmica do curso! Palestras, workshops e muito networking."
             />
+            {form.descricao && (
+              <p className="text-[11px] text-slate-400 mt-1 text-right">
+                {form.descricao.length}/300 caracteres
+              </p>
+            )}
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div>

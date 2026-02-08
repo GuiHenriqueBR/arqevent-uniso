@@ -43,6 +43,7 @@ export interface Lecture {
   sala: string;
   palestrante_nome?: string;
   qr_code_hash?: string;
+  semestres_permitidos?: string | null;
   status: "upcoming" | "live" | "completed";
 }
 

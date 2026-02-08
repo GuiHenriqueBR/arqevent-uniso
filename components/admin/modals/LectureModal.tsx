@@ -11,6 +11,7 @@ import {
   Timer,
   User,
   BookOpen,
+  GraduationCap,
 } from "lucide-react";
 import { Palestra, Evento } from "../../../services/api";
 
@@ -50,6 +51,7 @@ const LectureModal: React.FC<LectureModalProps> = ({
     palestrante_id: "",
     palestrante_nome: "",
     qr_expiration_seconds: 60,
+    semestres_permitidos: [] as number[],
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -82,6 +84,9 @@ const LectureModal: React.FC<LectureModalProps> = ({
         palestrante_id: initialData.palestrante_id || "",
         palestrante_nome: initialData.palestrante_nome || "",
         qr_expiration_seconds: (initialData as any).qr_expiration_seconds || 60,
+        semestres_permitidos: (initialData as any).semestres_permitidos
+          ? JSON.parse((initialData as any).semestres_permitidos)
+          : [],
       });
     } else {
       setForm({
@@ -99,6 +104,7 @@ const LectureModal: React.FC<LectureModalProps> = ({
         palestrante_id: "",
         palestrante_nome: "",
         qr_expiration_seconds: 60,
+        semestres_permitidos: [],
       });
     }
     setError(null);
@@ -128,6 +134,7 @@ const LectureModal: React.FC<LectureModalProps> = ({
         carga_unidade,
         carga_horaria,
         carga_horaria_minutos,
+        semestres_permitidos,
         ...formData
       } = form;
 
@@ -135,6 +142,10 @@ const LectureModal: React.FC<LectureModalProps> = ({
         ...formData,
         carga_horaria: Math.ceil(cargaMinutos / 60), // Manter compatibilidade (em horas)
         carga_horaria_minutos: cargaMinutos,
+        semestres_permitidos:
+          semestres_permitidos.length > 0
+            ? JSON.stringify(semestres_permitidos)
+            : null,
       };
 
       const payload =
@@ -404,6 +415,77 @@ const LectureModal: React.FC<LectureModalProps> = ({
                   placeholder="Ex: Auditório Principal"
                 />
               </div>
+            </div>
+
+            {/* Divisor */}
+            <div className="border-t border-slate-100" />
+
+            {/* Seção: Semestres Permitidos */}
+            <div className={sectionClass}>
+              <div className="flex items-center gap-2 text-slate-600 mb-3">
+                <GraduationCap className="w-4 h-4" />
+                <span className="text-sm font-medium">
+                  Semestres Permitidos
+                </span>
+              </div>
+
+              <p className="text-xs text-slate-500 mb-3">
+                Selecione quais semestres podem participar. Deixe vazio para
+                permitir todos.
+              </p>
+
+              <div className="flex flex-wrap gap-2">
+                {Array.from({ length: 10 }, (_, i) => i + 1).map((sem) => {
+                  const isSelected = form.semestres_permitidos.includes(sem);
+                  return (
+                    <button
+                      key={sem}
+                      type="button"
+                      onClick={() => {
+                        setForm((prev) => ({
+                          ...prev,
+                          semestres_permitidos: isSelected
+                            ? prev.semestres_permitidos.filter((s) => s !== sem)
+                            : [...prev.semestres_permitidos, sem].sort(
+                                (a, b) => a - b,
+                              ),
+                        }));
+                      }}
+                      className={`px-3 py-2 rounded-lg text-sm font-medium transition-all border ${
+                        isSelected
+                          ? "bg-indigo-100 text-indigo-700 border-indigo-300 ring-1 ring-indigo-200"
+                          : "bg-white text-slate-600 border-slate-200 hover:border-slate-300 hover:bg-slate-50"
+                      }`}
+                    >
+                      {sem}º Sem
+                    </button>
+                  );
+                })}
+              </div>
+
+              {form.semestres_permitidos.length > 0 && (
+                <div className="flex items-center justify-between mt-2">
+                  <span className="text-xs text-indigo-600 font-medium">
+                    {form.semestres_permitidos.length} semestre(s)
+                    selecionado(s)
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setForm((prev) => ({ ...prev, semestres_permitidos: [] }))
+                    }
+                    className="text-xs text-slate-500 hover:text-red-500 transition-colors"
+                  >
+                    Limpar seleção
+                  </button>
+                </div>
+              )}
+
+              {form.semestres_permitidos.length === 0 && (
+                <p className="text-xs text-emerald-600 font-medium mt-1">
+                  ✓ Todos os semestres podem participar
+                </p>
+              )}
             </div>
 
             {/* Divisor */}

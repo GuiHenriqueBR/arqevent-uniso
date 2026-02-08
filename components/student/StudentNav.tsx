@@ -1,10 +1,10 @@
 import React from "react";
-import { Home, QrCode, User as UserIcon } from "lucide-react";
+import { Home, QrCode, User as UserIcon, CalendarDays } from "lucide-react";
 import { motion } from "framer-motion";
 
 interface StudentNavProps {
-  activeTab: "home" | "scan" | "profile";
-  onTabChange: (tab: "home" | "scan" | "profile") => void;
+  activeTab: "home" | "calendar" | "scan" | "profile";
+  onTabChange: (tab: "home" | "calendar" | "scan" | "profile") => void;
 }
 
 const StudentNav: React.FC<StudentNavProps> = ({ activeTab, onTabChange }) => {
@@ -17,14 +17,21 @@ const StudentNav: React.FC<StudentNavProps> = ({ activeTab, onTabChange }) => {
         label="Início"
       />
 
+      <NavButton
+        active={activeTab === "calendar"}
+        onClick={() => onTabChange("calendar")}
+        icon={<CalendarDays className="w-5 h-5 sm:w-6 sm:h-6" />}
+        label="Calendário"
+      />
+
       <div className="relative -mt-8">
         <motion.button
           whileTap={{ scale: 0.9 }}
           onClick={() => onTabChange("scan")}
-          className={`flex items-center justify-center w-14 h-14 rounded-full shadow-lg transition-all ${
+          className={`flex items-center justify-center w-14 h-14 rounded-full transition-all ${
             activeTab === "scan"
-              ? "bg-indigo-600 text-white ring-4 ring-indigo-100"
-              : "bg-slate-900 text-white shadow-indigo-200"
+              ? "bg-slate-900 text-white shadow-xl shadow-slate-900/30 ring-4 ring-white"
+              : "bg-white text-slate-900 shadow-lg shadow-slate-200 border border-slate-100"
           }`}
         >
           <QrCode className="w-6 h-6" />
@@ -57,7 +64,7 @@ const NavButton: React.FC<NavButtonProps> = ({
   <motion.button
     whileTap={{ scale: 0.9 }}
     onClick={onClick}
-    className={`flex flex-col items-center p-2 rounded-lg transition-colors ${active ? "text-indigo-600" : "text-slate-400"}`}
+    className={`flex flex-col items-center p-2 rounded-lg transition-colors ${active ? "text-slate-900" : "text-slate-400"}`}
   >
     {icon}
     <span className="text-[10px] sm:text-xs font-medium mt-1">{label}</span>
