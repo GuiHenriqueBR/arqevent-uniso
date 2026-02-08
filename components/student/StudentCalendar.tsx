@@ -179,28 +179,10 @@ const StudentCalendar: React.FC<StudentCalendarProps> = ({
         <h3 className="text-lg font-bold text-slate-700 mb-1">
           Nenhuma atividade
         </h3>
-              <p className="text-xs text-slate-500">
-                Programacao do evento
-                {primaryEvent && ` • ${primaryEvent.titulo}`}
-              </p>
-              {primaryEvent && (
-                <div className="flex flex-wrap gap-1.5 mt-2">
-                  {primaryEvent.destaque && (
-                    <span className="text-[10px] font-bold bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full">
-                      Evento principal
-                    </span>
-                  )}
-                  {eventStatus && (
-                    <span className="text-[10px] font-bold bg-slate-100 text-slate-600 px-2 py-0.5 rounded-full">
-                      {eventStatus === "AO_VIVO"
-                        ? "Ao vivo"
-                        : eventStatus === "ENCERRADO"
-                          ? "Encerrado"
-                          : "Inscricoes abertas"}
-                    </span>
-                  )}
-                </div>
-              )}
+        <p className="text-sm text-slate-500">
+          O calendário de atividades ainda não foi publicado.
+        </p>
+      </div>
     );
   }
 
