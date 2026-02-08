@@ -166,12 +166,10 @@ const StudentHome: React.FC<StudentHomeProps> = ({
               👋
             </span>
           </h1>
-          <p className="text-sm font-medium text-slate-500 mt-1 flex items-center gap-2">
-            <span className="bg-slate-100 px-2 py-0.5 rounded text-xs text-slate-600 border border-slate-200">
-              Arquitetura
-            </span>
-            <span>•</span>
-            <span className="text-slate-400">{user.semestre || "Aluno"}</span>
+          <p className="text-sm font-medium text-slate-500 mt-0.5 flex items-center gap-2">
+            <span className="text-slate-600 font-semibold">Arquitetura</span>
+            <span className="text-slate-300">•</span>
+            <span className="text-slate-500">{user.semestre || "Aluno"}</span>
           </p>
         </div>
         <div className="flex items-center gap-3">
@@ -223,7 +221,7 @@ const StudentHome: React.FC<StudentHomeProps> = ({
                     className="absolute inset-0 w-full h-full object-cover"
                     loading="lazy"
                   />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent"></div>
+                  <div className="absolute inset-0 bg-linear-to-t from-black/70 via-black/30 to-transparent"></div>
                   <div className="absolute bottom-3 left-3 right-3 text-white">
                     <h3 className="text-base font-bold leading-tight">
                       {aviso.titulo}
@@ -414,52 +412,53 @@ const StudentHome: React.FC<StudentHomeProps> = ({
 
       {/* Hero Event */}
       {!loading && eventoSelecionado && happeningNow.length === 0 && (
-        <AnimatedCard className="bg-indigo-600 border-none text-white shadow-xl shadow-indigo-600/20 relative overflow-hidden min-h-55 flex flex-col justify-center">
+        <AnimatedCard className="bg-slate-900 border-none text-white shadow-xl shadow-slate-900/20 relative overflow-hidden min-h-48 flex flex-col justify-center">
           {eventoSelecionado.banner_url && (
             <div className="absolute inset-0">
               <img
                 src={eventoSelecionado.banner_url}
                 alt={eventoSelecionado.titulo}
-                className="w-full h-full object-cover opacity-25"
+                className="w-full h-full object-cover opacity-20 mix-blend-overlay"
                 loading="lazy"
               />
-              <div className="absolute inset-0 bg-indigo-700/70"></div>
+              <div className="absolute inset-0 bg-slate-900/60"></div>
             </div>
           )}
-          <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-400 rounded-full mix-blend-multiply filter blur-[80px] opacity-70 animate-blob"></div>
-          <div className="absolute bottom-0 left-0 w-64 h-64 bg-purple-400 rounded-full mix-blend-multiply filter blur-[80px] opacity-70 animate-blob animation-delay-2000"></div>
-          <div className="relative z-10 p-6 sm:p-8">
+
+          <div className="relative z-10 p-6">
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-6">
               <div className="flex-1">
-                <span className="bg-indigo-400/30 text-indigo-50 text-xs px-3 py-1.5 rounded-full mb-4 inline-flex items-center gap-2 backdrop-blur-md border border-indigo-400/30 font-medium">
+                <span className="text-slate-300 text-xs font-medium mb-3 flex items-center gap-2 uppercase tracking-wide">
                   <CalendarDays className="w-3.5 h-3.5" />
                   {new Date(eventoSelecionado.data_inicio).toLocaleDateString(
                     "pt-BR",
                     { weekday: "long", day: "numeric", month: "long" },
                   )}
                 </span>
-                <h2 className="text-2xl sm:text-4xl font-extrabold mb-2 leading-tight tracking-tight">
+                <h2 className="text-2xl sm:text-3xl font-bold mb-2 leading-tight tracking-tight text-white">
                   {eventoSelecionado.titulo}
                 </h2>
-                <div className="flex items-center gap-2 text-indigo-100 text-sm sm:text-base font-medium opacity-90">
+                <div className="flex items-center gap-2 text-slate-300 text-sm font-medium mb-4">
                   <MapPin className="w-4 h-4" />
                   {eventoSelecionado.local || "Auditório Principal"}
                 </div>
 
-                <CountdownTimer targetDate={eventoSelecionado.data_inicio} />
+                <div className="scale-90 origin-left">
+                  <CountdownTimer targetDate={eventoSelecionado.data_inicio} />
+                </div>
               </div>
 
               <div className="w-full sm:w-auto">
                 {!isInscritoEvento(eventoSelecionado.id) ? (
                   <TactileButton
                     onClick={() => onInscreverEvento(eventoSelecionado.id)}
-                    className="bg-white text-indigo-600 hover:bg-indigo-50 w-full sm:w-auto font-bold border-none px-8 py-4 text-base shadow-xl shadow-indigo-900/20"
+                    className="bg-white text-slate-900 hover:bg-slate-50 w-full sm:w-auto font-bold border-none px-6 py-3 text-sm shadow-lg shadow-black/10 transition-transform"
                   >
                     Garantir Vaga
                   </TactileButton>
                 ) : (
-                  <div className="bg-white/20 text-white px-6 py-3 rounded-xl font-bold text-sm w-full sm:w-auto text-center flex items-center justify-center gap-2 backdrop-blur-md border border-white/20">
-                    <CheckCircle className="w-5 h-5" />
+                  <div className="bg-slate-800/50 text-slate-200 px-5 py-2.5 rounded-lg font-medium text-sm w-full sm:w-auto text-center flex items-center justify-center gap-2 border border-slate-700/50 backdrop-blur-sm">
+                    <CheckCircle className="w-4 h-4" />
                     Inscrição Confirmada
                   </div>
                 )}
@@ -479,9 +478,16 @@ const StudentHome: React.FC<StudentHomeProps> = ({
             <button
               onClick={() => {
                 setActiveFilter("todos");
-                setTimeout(() => mainListRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }), 100);
+                setTimeout(
+                  () =>
+                    mainListRef.current?.scrollIntoView({
+                      behavior: "smooth",
+                      block: "start",
+                    }),
+                  100,
+                );
               }}
-              className="text-xs text-indigo-600 font-semibold flex items-center gap-0.5 hover:underline"
+              className="text-xs text-slate-600 font-semibold flex items-center gap-0.5 hover:underline"
             >
               Ver todas <ChevronRight className="w-3 h-3" />
             </button>
@@ -519,7 +525,7 @@ const StudentHome: React.FC<StudentHomeProps> = ({
                     </div>
                     <button
                       onClick={() => onViewDetails(palestra)}
-                      className="text-xs bg-indigo-50 text-indigo-600 px-3 py-1.5 rounded-lg font-bold hover:bg-indigo-100 transition-colors"
+                      className="text-xs bg-slate-100 text-slate-700 px-3 py-1.5 rounded-lg font-bold hover:bg-slate-200 transition-colors"
                     >
                       Ver Detalhes
                     </button>
@@ -601,9 +607,19 @@ const StudentHome: React.FC<StudentHomeProps> = ({
                         className={`p-0 border-0 shadow-sm hover:shadow-md transition-all overflow-hidden ${isLive ? "ring-2 ring-rose-500/50" : ""}`}
                       >
                         <div className="p-5 flex gap-4">
-                          {/* Time Column */}
-                          <div className="flex flex-col items-center justify-start min-w-14 border-r border-slate-50 pr-4">
-                            <span className="text-lg font-bold text-slate-800">
+                          {/* Time Column REFINED */}
+                          <div className="flex flex-col items-center justify-center min-w-14 sm:min-w-16 text-center">
+                            <span className="text-2xl font-bold text-slate-800 leading-none">
+                              {new Date(palestra.data_hora_inicio).getDate()}
+                            </span>
+                            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mt-1">
+                              {new Date(palestra.data_hora_inicio)
+                                .toLocaleDateString("pt-BR", {
+                                  weekday: "short",
+                                })
+                                .replace(".", "")}
+                            </span>
+                            <span className="text-xs font-medium text-slate-500 mt-2 bg-slate-100 px-1.5 py-0.5 rounded">
                               {new Date(
                                 palestra.data_hora_inicio,
                               ).toLocaleTimeString("pt-BR", {
@@ -611,47 +627,36 @@ const StudentHome: React.FC<StudentHomeProps> = ({
                                 minute: "2-digit",
                               })}
                             </span>
-                            <span className="text-xs font-semibold text-slate-400 uppercase">
-                              {new Date(palestra.data_hora_inicio)
-                                .toLocaleDateString("pt-BR", {
-                                  weekday: "short",
-                                })
-                                .replace(".", "")}
-                            </span>
                             {isLive && (
-                              <span className="mt-2 w-2 h-2 rounded-full bg-rose-500 animate-pulse"></span>
+                              <span className="mt-2 text-[10px] font-bold text-rose-500 animate-pulse">
+                                AO VIVO
+                              </span>
                             )}
                           </div>
 
-                          {/* Content */}
-                          <div className="flex-1 min-w-0 py-0.5">
-                            <div className="flex items-start justify-between gap-2 mb-1">
-                              <div className="flex items-center gap-2 flex-wrap">
-                                {palestra.tipo === "ATIVIDADE" && (
-                                  <span className="text-[10px] font-bold bg-amber-100 text-amber-700 px-1.5 py-0.5 rounded">
-                                    ATIVIDADE
-                                  </span>
-                                )}
-                                <h4 className="font-bold text-slate-800 text-base leading-tight">
-                                  {palestra.titulo}
-                                </h4>
-                              </div>
+                          {/* Content REFINED */}
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2 mb-1">
+                              {palestra.tipo === "ATIVIDADE" && (
+                                <span className="text-[10px] font-bold bg-amber-50 text-amber-700 border border-amber-100 px-1.5 py-0.5 rounded">
+                                  ATIVIDADE
+                                </span>
+                              )}
+                              <h4 className="font-bold text-slate-900 text-base leading-tight truncate">
+                                {palestra.titulo}
+                              </h4>
                             </div>
 
-                            <p className="text-sm text-slate-500 mb-3 truncate">
+                            <p className="text-sm text-slate-500 mb-2 truncate">
                               {palestra.palestrante_nome ||
                                 palestra.palestrante?.nome ||
                                 "Palestrante Convidado"}
                             </p>
 
                             <div className="flex flex-wrap items-center gap-3 text-xs text-slate-400">
-                              <span className="flex items-center gap-1 bg-slate-50 px-2 py-1 rounded">
+                              <span className="flex items-center gap-1 font-medium text-slate-500">
                                 <MapPin className="w-3 h-3" />{" "}
                                 {palestra.sala || "TBD"}
-                              </span>
-                              <span className="flex items-center gap-1 bg-slate-50 px-2 py-1 rounded">
-                                <Award className="w-3 h-3" />{" "}
-                                {palestra.carga_horaria}h
                               </span>
 
                               <div className="ml-auto flex gap-2">
@@ -664,7 +669,7 @@ const StudentHome: React.FC<StudentHomeProps> = ({
                                   </Badge>
                                 ) : isPast ? (
                                   <Badge
-                                    color="red"
+                                    color="gray"
                                     icon={<Info className="w-3 h-3" />}
                                   >
                                     Encerrado
@@ -684,8 +689,9 @@ const StudentHome: React.FC<StudentHomeProps> = ({
 
                         {/* Actions Footer */}
                         {(!isPast || presente) && (
-                          <div className="bg-slate-50 px-5 py-3 flex justify-between items-center border-t border-slate-100">
-                            {!isInscritoEvento(eventoSelecionado.id) ? (
+                          <div className="bg-slate-50/50 px-4 sm:px-5 py-3 flex justify-between items-center border-t border-slate-100">
+                            {!eventoSelecionado ||
+                            !isInscritoEvento(eventoSelecionado.id) ? (
                               <span className="text-xs text-slate-400 italic">
                                 Inscreva-se no evento para participar
                               </span>
@@ -701,7 +707,7 @@ const StudentHome: React.FC<StudentHomeProps> = ({
                                   onClick={() =>
                                     onInscreverPalestra(palestra.id)
                                   }
-                                  className="text-xs font-bold text-indigo-600 hover:text-indigo-700 flex items-center gap-1"
+                                  className="text-xs font-bold text-slate-800 hover:text-slate-900 flex items-center gap-1"
                                 >
                                   Inscrever-se{" "}
                                   <ChevronRight className="w-3 h-3" />
@@ -762,14 +768,15 @@ const StudentHome: React.FC<StudentHomeProps> = ({
 
 const Badge: React.FC<{
   children: React.ReactNode;
-  color: "green" | "blue" | "red" | "amber";
+  color: "green" | "blue" | "red" | "amber" | "gray";
   icon?: React.ReactNode;
 }> = ({ children, color, icon }) => {
   const colors = {
-    green: "bg-emerald-100 text-emerald-700 border border-emerald-200",
-    blue: "bg-indigo-100 text-indigo-700 border border-indigo-200",
-    red: "bg-rose-100 text-rose-700 border border-rose-200",
-    amber: "bg-amber-100 text-amber-700 border border-amber-200",
+    green: "bg-emerald-50 text-emerald-700 border border-emerald-100",
+    blue: "bg-indigo-50 text-indigo-700 border border-indigo-100",
+    red: "bg-rose-50 text-rose-700 border border-rose-100",
+    amber: "bg-amber-50 text-amber-700 border border-amber-100",
+    gray: "bg-slate-100 text-slate-500 border border-slate-200",
   };
   return (
     <span
@@ -790,7 +797,7 @@ const FilterChip: React.FC<{
     onClick={onClick}
     className={`px-4 py-2 rounded-full text-sm font-semibold transition-all duration-300 flex items-center gap-2 border whitespace-nowrap ${
       active
-        ? "bg-indigo-600 text-white border-indigo-600 shadow-md shadow-indigo-200 transform scale-105"
+        ? "bg-slate-900 text-white border-slate-900 shadow-md shadow-slate-200 transform scale-105"
         : "bg-white text-slate-600 border-slate-200 hover:bg-slate-50 hover:border-slate-300"
     }`}
   >
