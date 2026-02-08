@@ -109,6 +109,31 @@ const EventsView: React.FC<EventsViewProps> = ({
     const mins = totalMinutos % 60;
     return mins > 0 ? `${horas}h ${mins}min` : `${horas}h`;
   };
+
+  const getEventoStatus = (evento: Evento) => {
+    if (evento.status_manual && evento.status_manual !== "AUTO") {
+      return evento.status_manual;
+    }
+    const now = new Date();
+    const start = new Date(evento.data_inicio);
+    const end = new Date(evento.data_fim);
+    if (now >= start && now <= end) return "AO_VIVO";
+    if (now > end) return "ENCERRADO";
+    return "ABERTO";
+  };
+
+  const getStatusBadge = (status: string) => {
+    switch (status) {
+      case "AO_VIVO":
+        return { label: "Ao vivo", variant: "destructive" as const };
+      case "ENCERRADO":
+        return { label: "Encerrado", variant: "secondary" as const };
+      case "ABERTO":
+        return { label: "Inscricoes abertas", variant: "success" as const };
+      default:
+        return { label: "Status", variant: "outline" as const };
+    }
+  };
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -228,13 +253,25 @@ const EventsView: React.FC<EventsViewProps> = ({
                 >
                   <div className="h-2 bg-linear-to-r from-indigo-500 to-purple-500" />
                   <div className="p-5 flex flex-col flex-1">
-                    <div className="flex justify-between items-start mb-3">
+                    <div className="flex justify-between items-start mb-3 gap-3">
                       <h3 className="font-bold text-slate-800 line-clamp-2 text-lg">
                         {evento.titulo}
                       </h3>
-                      <Badge variant={evento.ativo ? "success" : "secondary"}>
-                        {evento.ativo ? "Ativo" : "Inativo"}
-                      </Badge>
+                      <div className="flex flex-wrap items-center gap-1.5">
+                        <Badge variant={evento.ativo ? "success" : "secondary"}>
+                          {evento.ativo ? "Ativo" : "Inativo"}
+                        </Badge>
+                        {evento.destaque && (
+                          <Badge variant="warning">Principal</Badge>
+                        )}
+                        <Badge
+                          variant={
+                            getStatusBadge(getEventoStatus(evento)).variant
+                          }
+                        >
+                          {getStatusBadge(getEventoStatus(evento)).label}
+                        </Badge>
+                      </div>
                     </div>
                     <p className="text-sm text-slate-500 line-clamp-3 mb-4 flex-1">
                       {evento.descricao || "Sem descrição"}

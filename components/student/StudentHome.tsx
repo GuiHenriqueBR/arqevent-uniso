@@ -19,6 +19,9 @@ import {
   Flame,
   CalendarDays,
   Timer,
+  BookOpen,
+  Share2,
+  Star,
   ChevronRight,
   Filter,
 } from "lucide-react";
@@ -72,11 +75,114 @@ const StudentHome: React.FC<StudentHomeProps> = ({
   const [activeFilter, setActiveFilter] = React.useState<
     "todos" | "palestras" | "atividades" | "inscricoes"
   >("todos");
+  const [isHeroModalOpen, setIsHeroModalOpen] = React.useState(false);
+  const [heroImageIndex, setHeroImageIndex] = React.useState(0);
 
   const mainListRef = React.useRef<HTMLDivElement>(null);
 
+  const parseBannerGallery = (raw?: unknown): string[] => {
+    if (Array.isArray(raw)) {
+      return raw.filter((item) => typeof item === "string") as string[];
+    }
+    if (typeof raw === "string") {
+      try {
+        const parsed = JSON.parse(raw);
+        return Array.isArray(parsed)
+          ? (parsed.filter((item) => typeof item === "string") as string[])
+          : [];
+      } catch {
+        return [];
+      }
+    }
+    return [];
+  };
+
+  React.useEffect(() => {
+    setIsHeroModalOpen(false);
+  }, [eventoSelecionado?.id]);
+
+  const heroImages = React.useMemo(() => {
+    if (!eventoSelecionado) return [] as string[];
+    const gallery = parseBannerGallery(eventoSelecionado.banner_galeria);
+    const images = [
+      ...(eventoSelecionado.banner_url ? [eventoSelecionado.banner_url] : []),
+      ...gallery,
+    ];
+    return Array.from(new Set(images)).filter(Boolean);
+  }, [eventoSelecionado?.banner_url, eventoSelecionado?.banner_galeria]);
+
+  React.useEffect(() => {
+    setHeroImageIndex(0);
+    if (heroImages.length <= 1) return undefined;
+    const timer = window.setInterval(() => {
+      setHeroImageIndex((prev) => (prev + 1) % heroImages.length);
+    }, 6000);
+    return () => window.clearInterval(timer);
+  }, [heroImages.length, eventoSelecionado?.id]);
+
   const now = new Date();
   const bannerAvisos = avisos.filter((a) => a.imagem_url);
+
+  const getEventoStatus = (evento: Evento) => {
+    if (evento.status_manual && evento.status_manual !== "AUTO") {
+      return evento.status_manual;
+    }
+    const start = new Date(evento.data_inicio);
+    const end = new Date(evento.data_fim);
+    if (now >= start && now <= end) return "AO_VIVO";
+    if (now > end) return "ENCERRADO";
+    return "ABERTO";
+  };
+
+  const getStatusMeta = (status: string) => {
+    switch (status) {
+      case "AO_VIVO":
+        return {
+          label: "Ao vivo",
+          className: "bg-rose-500/80 text-white border border-rose-200/30",
+        };
+      case "ENCERRADO":
+        return {
+          label: "Encerrado",
+          className: "bg-slate-700/70 text-white border border-slate-200/10",
+        };
+      case "ABERTO":
+        return {
+          label: "Inscricoes abertas",
+          className:
+            "bg-emerald-500/80 text-white border border-emerald-200/30",
+        };
+      default:
+        return {
+          label: "Status",
+          className: "bg-white/15 text-white border border-white/20",
+        };
+    }
+  };
+
+  const handleShareEvento = async (evento: Evento) => {
+    const shareUrl = evento.compartilhar_url || window.location.href;
+    const shareData = {
+      title: evento.titulo,
+      text: evento.descricao || "",
+      url: shareUrl,
+    };
+    try {
+      if (navigator.share) {
+        await navigator.share(shareData);
+        return;
+      }
+    } catch {
+      // ignore share errors
+    }
+    try {
+      if (navigator.clipboard?.writeText) {
+        await navigator.clipboard.writeText(shareUrl);
+      }
+    } catch {
+      // ignore clipboard errors
+    }
+  };
 
   // Derived Lists
   const happeningNow = React.useMemo(() => {
@@ -415,9 +521,9 @@ const StudentHome: React.FC<StudentHomeProps> = ({
         <div className="rounded-2xl overflow-hidden shadow-xl shadow-slate-900/15 border border-slate-100">
           {/* Image Section — Full visual like an IG post */}
           <div className="relative aspect-4/3 sm:aspect-video bg-slate-900 overflow-hidden group">
-            {eventoSelecionado.banner_url ? (
+            {heroImages.length > 0 ? (
               <img
-                src={eventoSelecionado.banner_url}
+                src={heroImages[heroImageIndex]}
                 alt={eventoSelecionado.titulo}
                 className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
                 loading="lazy"
@@ -432,20 +538,33 @@ const StudentHome: React.FC<StudentHomeProps> = ({
             )}
 
             {/* Gradient overlays for text readability */}
-            <div className="absolute inset-0 bg-linear-to-t from-black/80 via-black/20 to-transparent"></div>
-            <div className="absolute inset-0 bg-linear-to-r from-black/30 to-transparent"></div>
+            <div className="absolute inset-0 bg-linear-to-t from-black/90 via-black/35 to-transparent"></div>
+            <div className="absolute inset-0 bg-linear-to-r from-black/35 to-transparent"></div>
+            <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom,rgba(0,0,0,0.6),rgba(0,0,0,0))]"></div>
 
             {/* Top badges */}
             <div className="absolute top-3 left-3 right-3 flex justify-between items-start z-10">
-              <span className="bg-white/15 backdrop-blur-md text-white text-[10px] font-bold px-3 py-1.5 rounded-full uppercase tracking-wider flex items-center gap-1.5 border border-white/20">
-                <CalendarDays className="w-3 h-3" />
-                {new Date(eventoSelecionado.data_inicio)
-                  .toLocaleDateString("pt-BR", {
-                    day: "numeric",
-                    month: "short",
-                  })
-                  .toUpperCase()}
-              </span>
+              <div className="flex flex-wrap gap-2">
+                <span className="bg-white/15 backdrop-blur-md text-white text-[10px] font-bold px-3 py-1.5 rounded-full uppercase tracking-wider flex items-center gap-1.5 border border-white/20">
+                  <CalendarDays className="w-3 h-3" />
+                  {new Date(eventoSelecionado.data_inicio)
+                    .toLocaleDateString("pt-BR", {
+                      day: "numeric",
+                      month: "short",
+                    })
+                    .toUpperCase()}
+                </span>
+                {eventoSelecionado.destaque && (
+                  <span className="bg-amber-400/80 text-slate-900 text-[10px] font-bold px-3 py-1.5 rounded-full flex items-center gap-1.5 border border-amber-200/40">
+                    <Star className="w-3 h-3" /> Evento principal
+                  </span>
+                )}
+                <span
+                  className={`text-[10px] font-bold px-3 py-1.5 rounded-full flex items-center gap-1.5 ${getStatusMeta(getEventoStatus(eventoSelecionado)).className}`}
+                >
+                  {getStatusMeta(getEventoStatus(eventoSelecionado)).label}
+                </span>
+              </div>
               {eventoSelecionado.local && (
                 <span className="bg-white/15 backdrop-blur-md text-white text-[10px] font-bold px-3 py-1.5 rounded-full flex items-center gap-1.5 border border-white/20">
                   <MapPin className="w-3 h-3" />
@@ -464,25 +583,53 @@ const StudentHome: React.FC<StudentHomeProps> = ({
                   {eventoSelecionado.descricao}
                 </p>
               )}
+              {eventoSelecionado.descricao && (
+                <div className="mt-2">
+                  <button
+                    type="button"
+                    onClick={() => setIsHeroModalOpen(true)}
+                    className="inline-flex items-center gap-1.5 text-white/90 text-xs font-semibold bg-white/10 hover:bg-white/20 border border-white/20 px-3 py-1.5 rounded-full backdrop-blur-sm transition-colors"
+                  >
+                    <BookOpen className="w-3.5 h-3.5" /> Ler mais
+                  </button>
+                </div>
+              )}
             </div>
           </div>
 
           {/* Footer — Action bar */}
           <div className="bg-white p-4 sm:p-5">
-            <div className="flex items-center justify-between gap-4">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
               {/* Countdown */}
               <div className="flex items-center gap-3">
                 <CountdownTimer targetDate={eventoSelecionado.data_inicio} />
               </div>
 
-              {/* CTA Button */}
-              <div className="shrink-0">
+              {/* CTA Buttons */}
+              <div className="flex flex-wrap items-center gap-2 shrink-0">
+                {eventoSelecionado.cta_sec_url && (
+                  <a
+                    href={eventoSelecionado.cta_sec_url}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="inline-flex items-center justify-center text-sm font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 px-4 py-2.5 rounded-xl border border-slate-200"
+                  >
+                    {eventoSelecionado.cta_sec_label || "Saiba mais"}
+                  </a>
+                )}
+                <button
+                  type="button"
+                  onClick={() => handleShareEvento(eventoSelecionado)}
+                  className="inline-flex items-center justify-center text-sm font-semibold text-slate-700 bg-white hover:bg-slate-50 px-4 py-2.5 rounded-xl border border-slate-200"
+                >
+                  <Share2 className="w-4 h-4 mr-2" /> Compartilhar
+                </button>
                 {!isInscritoEvento(eventoSelecionado.id) ? (
                   <TactileButton
                     onClick={() => onInscreverEvento(eventoSelecionado.id)}
                     className="bg-slate-900 text-white hover:bg-slate-800 font-bold border-none px-5 py-2.5 text-sm shadow-md shadow-slate-900/20 rounded-xl"
                   >
-                    Garantir Vaga
+                    {eventoSelecionado.cta_label || "Garantir Vaga"}
                   </TactileButton>
                 ) : (
                   <div className="bg-emerald-50 text-emerald-700 px-4 py-2.5 rounded-xl font-semibold text-sm flex items-center gap-2 border border-emerald-100">
@@ -491,6 +638,72 @@ const StudentHome: React.FC<StudentHomeProps> = ({
                   </div>
                 )}
               </div>
+            </div>
+            {heroImages.length > 1 && (
+              <div className="flex justify-center gap-1.5 mt-3">
+                {heroImages.map((_, index) => (
+                  <button
+                    key={index}
+                    type="button"
+                    onClick={() => setHeroImageIndex(index)}
+                    className={`w-2 h-2 rounded-full transition-colors ${
+                      index === heroImageIndex ? "bg-slate-900" : "bg-slate-300"
+                    }`}
+                    aria-label={`Banner ${index + 1}`}
+                  />
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {isHeroModalOpen && eventoSelecionado && (
+        <div
+          className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4"
+          onClick={() => setIsHeroModalOpen(false)}
+        >
+          <div
+            className="bg-white w-full max-w-2xl rounded-2xl overflow-hidden shadow-2xl"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="relative aspect-video bg-slate-900">
+              {heroImages.length > 0 ? (
+                <img
+                  src={heroImages[0]}
+                  alt={eventoSelecionado.titulo}
+                  className="absolute inset-0 w-full h-full object-cover"
+                />
+              ) : (
+                <div className="absolute inset-0 bg-linear-to-br from-slate-800 via-slate-900 to-slate-950"></div>
+              )}
+              <div className="absolute inset-0 bg-linear-to-t from-black/80 via-black/30 to-transparent"></div>
+              <div className="absolute bottom-0 left-0 right-0 p-4">
+                <h3 className="text-white text-xl font-bold drop-shadow">
+                  {eventoSelecionado.titulo}
+                </h3>
+                <p className="text-white/80 text-sm mt-1">
+                  {new Date(eventoSelecionado.data_inicio).toLocaleDateString(
+                    "pt-BR",
+                    { weekday: "long", day: "numeric", month: "long" },
+                  )}
+                  {eventoSelecionado.local
+                    ? ` • ${eventoSelecionado.local}`
+                    : ""}
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsHeroModalOpen(false)}
+                className="absolute top-3 right-3 bg-white/15 text-white hover:bg-white/25 rounded-full p-2 border border-white/20"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+            <div className="p-5 sm:p-6 max-h-[50vh] overflow-y-auto">
+              <p className="text-slate-700 leading-relaxed whitespace-pre-line">
+                {eventoSelecionado.descricao || "Sem descrição disponível."}
+              </p>
             </div>
           </div>
         </div>

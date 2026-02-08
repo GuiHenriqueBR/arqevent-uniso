@@ -85,6 +85,13 @@ model Evento {
   data_fim            DateTime    @db.Date
   local               String?
   banner_url          String?
+  banner_galeria      Json?
+  destaque            Boolean     @default(false)
+  status_manual       StatusEventoManual @default(AUTO)
+  cta_label           String?
+  cta_sec_label       String?
+  cta_sec_url         String?
+  compartilhar_url    String?
   carga_horaria_total Int         @default(0)
   turno_permitido     TurnoEvento @default(TODOS)
   vagas_totais        Int         @default(100)
@@ -99,6 +106,13 @@ model Evento {
   certificados        Certificado[]
 
   @@map("eventos")
+}
+
+enum StatusEventoManual {
+  AUTO
+  ABERTO
+  ENCERRADO
+  AO_VIVO
 }
 
 enum TipoPalestra {

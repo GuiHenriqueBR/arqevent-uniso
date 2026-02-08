@@ -60,6 +60,13 @@ export interface Evento {
   data_fim: string;
   local?: string;
   banner_url?: string;
+  banner_galeria?: string[] | null;
+  destaque?: boolean;
+  status_manual?: "AUTO" | "ABERTO" | "ENCERRADO" | "AO_VIVO";
+  cta_label?: string;
+  cta_sec_label?: string;
+  cta_sec_url?: string;
+  compartilhar_url?: string;
   carga_horaria_total: number;
   turno_permitido: "TODOS" | "MANHA" | "NOITE";
   vagas_totais: number;

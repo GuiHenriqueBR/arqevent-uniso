@@ -6,6 +6,7 @@ import {
   IsInt,
   IsEnum,
   IsBoolean,
+  IsArray,
   Min,
 } from "class-validator";
 
@@ -13,6 +14,13 @@ export enum TurnoEvento {
   TODOS = "TODOS",
   MANHA = "MANHA",
   NOITE = "NOITE",
+}
+
+export enum StatusEventoManual {
+  AUTO = "AUTO",
+  ABERTO = "ABERTO",
+  ENCERRADO = "ENCERRADO",
+  AO_VIVO = "AO_VIVO",
 }
 
 export class CreateEventoDto {
@@ -39,6 +47,35 @@ export class CreateEventoDto {
   @IsOptional()
   @IsString()
   banner_url?: string;
+
+  @IsOptional()
+  @IsArray()
+  @IsString({ each: true })
+  banner_galeria?: string[];
+
+  @IsOptional()
+  @IsBoolean()
+  destaque?: boolean;
+
+  @IsOptional()
+  @IsEnum(StatusEventoManual)
+  status_manual?: StatusEventoManual;
+
+  @IsOptional()
+  @IsString()
+  cta_label?: string;
+
+  @IsOptional()
+  @IsString()
+  cta_sec_label?: string;
+
+  @IsOptional()
+  @IsString()
+  cta_sec_url?: string;
+
+  @IsOptional()
+  @IsString()
+  compartilhar_url?: string;
 
   @IsOptional()
   @IsInt()
@@ -83,6 +120,35 @@ export class UpdateEventoDto {
   @IsOptional()
   @IsString()
   banner_url?: string;
+
+  @IsOptional()
+  @IsArray()
+  @IsString({ each: true })
+  banner_galeria?: string[];
+
+  @IsOptional()
+  @IsBoolean()
+  destaque?: boolean;
+
+  @IsOptional()
+  @IsEnum(StatusEventoManual)
+  status_manual?: StatusEventoManual;
+
+  @IsOptional()
+  @IsString()
+  cta_label?: string;
+
+  @IsOptional()
+  @IsString()
+  cta_sec_label?: string;
+
+  @IsOptional()
+  @IsString()
+  cta_sec_url?: string;
+
+  @IsOptional()
+  @IsString()
+  compartilhar_url?: string;
 
   @IsOptional()
   @IsInt()
