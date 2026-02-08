@@ -13,6 +13,7 @@ export default defineConfig(({ mode }) => {
     plugins: [
       react(),
       VitePWA({
+        disable: true, // Desabilitado: manifest servido via public/manifest.json; SW não é necessário
         registerType: "prompt",
         selfDestroying: true, // Remove service worker existente para evitar auto-reload
         includeAssets: ["favicon.ico", "icons/*.png"],
