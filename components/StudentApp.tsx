@@ -372,6 +372,26 @@ const StudentApp: React.FC<StudentAppProps> = ({ user, onLogout }) => {
             ? eventos.find((e) => e.id === detailsPalestra.evento_id)?.titulo
             : undefined
         }
+        isInscrito={
+          detailsPalestra
+            ? minhasInscricoes.palestras.some(
+                (p: any) => p.id === detailsPalestra.id,
+              )
+            : false
+        }
+        isInscritoEvento={
+          detailsPalestra
+            ? minhasInscricoes.eventos.some(
+                (e: any) => e.id === detailsPalestra.evento_id,
+              )
+            : false
+        }
+        onInscrever={() => {
+          if (detailsPalestra) {
+            handleInscreverPalestra(detailsPalestra.id);
+            setDetailsOpen(false);
+          }
+        }}
       />
     </div>
   );

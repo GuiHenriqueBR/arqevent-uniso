@@ -1,5 +1,15 @@
 import React from "react";
-import { X, Clock, MapPin, User, CalendarDays, Award } from "lucide-react";
+import {
+  X,
+  Clock,
+  MapPin,
+  User,
+  CalendarDays,
+  Award,
+  CheckCircle,
+  FileText,
+  ChevronRight,
+} from "lucide-react";
 import { Palestra, formatCargaHoraria } from "../../services/api";
 
 interface LectureDetailsModalProps {
@@ -7,6 +17,9 @@ interface LectureDetailsModalProps {
   onClose: () => void;
   palestra: Palestra | null;
   eventoTitulo?: string;
+  isInscrito?: boolean;
+  isInscritoEvento?: boolean;
+  onInscrever?: () => void;
 }
 
 const LectureDetailsModal: React.FC<LectureDetailsModalProps> = ({
@@ -14,6 +27,9 @@ const LectureDetailsModal: React.FC<LectureDetailsModalProps> = ({
   onClose,
   palestra,
   eventoTitulo,
+  isInscrito = false,
+  isInscritoEvento = false,
+  onInscrever,
 }) => {
   if (!isOpen || !palestra) return null;
 
@@ -23,32 +39,56 @@ const LectureDetailsModal: React.FC<LectureDetailsModalProps> = ({
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50 animate-in fade-in backdrop-blur-sm">
       <div className="bg-white rounded-2xl shadow-xl w-full max-w-xl max-h-[90vh] overflow-hidden flex flex-col">
+        {/* Header */}
         <div className="p-4 sm:p-6 border-b border-slate-100 flex items-center justify-between">
-          <div>
-            <h3 className="text-lg font-bold text-slate-800">
-              Detalhes da Palestra/Atividade
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-2 mb-1">
+              {palestra.tipo === "ATIVIDADE" && (
+                <span className="text-[10px] font-bold bg-amber-100 text-amber-700 px-1.5 py-0.5 rounded shrink-0">
+                  ATIVIDADE
+                </span>
+              )}
+              {isInscrito && (
+                <span className="text-[10px] font-bold bg-emerald-100 text-emerald-700 px-1.5 py-0.5 rounded flex items-center gap-0.5 shrink-0">
+                  <CheckCircle className="w-3 h-3" /> INSCRITO
+                </span>
+              )}
+            </div>
+            <h3 className="text-lg font-bold text-slate-800 leading-tight">
+              {palestra.titulo}
             </h3>
-            <p className="text-sm text-slate-500 mt-1">{palestra.titulo}</p>
+            <p className="text-sm text-slate-500 mt-0.5">{palestranteNome}</p>
           </div>
           <button
             onClick={onClose}
-            className="text-slate-400 hover:text-slate-600 transition-colors bg-white hover:bg-slate-100 p-2 rounded-full"
+            className="text-slate-400 hover:text-slate-600 transition-colors bg-white hover:bg-slate-100 p-2 rounded-full shrink-0 ml-3"
           >
             <X className="w-5 h-5" />
           </button>
         </div>
 
-        <div className="p-4 sm:p-6 space-y-4 overflow-y-auto">
-          {palestra.descricao && (
-            <div>
-              <p className="text-sm text-slate-500 mb-1">Descricao</p>
-              <p className="text-slate-800 text-sm leading-relaxed">
-                {palestra.descricao}
+        <div className="p-4 sm:p-6 space-y-5 overflow-y-auto">
+          {/* Descrição - Seção principal destacada */}
+          <div className="border-l-4 border-indigo-400 bg-indigo-50/50 rounded-r-xl p-4 sm:p-5">
+            <div className="flex items-center gap-2 mb-2">
+              <FileText className="w-4 h-4 text-indigo-500" />
+              <p className="text-sm font-semibold text-indigo-700">
+                Sobre esta atividade
               </p>
             </div>
-          )}
+            {palestra.descricao ? (
+              <p className="text-slate-700 text-base leading-relaxed whitespace-pre-line">
+                {palestra.descricao}
+              </p>
+            ) : (
+              <p className="text-slate-400 text-sm italic">
+                Nenhuma descrição disponível para esta atividade.
+              </p>
+            )}
+          </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          {/* Informações em grid */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div className="flex items-start gap-3 p-3 bg-slate-50 rounded-lg border border-slate-100">
               <CalendarDays className="w-5 h-5 text-indigo-500 mt-0.5" />
               <div>
@@ -72,7 +112,7 @@ const LectureDetailsModal: React.FC<LectureDetailsModalProps> = ({
             <div className="flex items-start gap-3 p-3 bg-slate-50 rounded-lg border border-slate-100">
               <Clock className="w-5 h-5 text-indigo-500 mt-0.5" />
               <div>
-                <p className="text-xs text-slate-500">Data e Horario</p>
+                <p className="text-xs text-slate-500">Data e Horário</p>
                 <p className="text-sm font-medium text-slate-800">
                   {new Date(palestra.data_hora_inicio).toLocaleDateString(
                     "pt-BR",
@@ -82,7 +122,8 @@ const LectureDetailsModal: React.FC<LectureDetailsModalProps> = ({
                   {new Date(palestra.data_hora_inicio).toLocaleTimeString(
                     "pt-BR",
                     { hour: "2-digit", minute: "2-digit" },
-                  )} - {" "}
+                  )}{" "}
+                  -{" "}
                   {new Date(palestra.data_hora_fim).toLocaleTimeString(
                     "pt-BR",
                     { hour: "2-digit", minute: "2-digit" },
@@ -96,7 +137,7 @@ const LectureDetailsModal: React.FC<LectureDetailsModalProps> = ({
               <div>
                 <p className="text-xs text-slate-500">Sala</p>
                 <p className="text-sm font-medium text-slate-800">
-                  {palestra.sala || "Nao definida"}
+                  {palestra.sala || "Não definida"}
                 </p>
               </div>
             </div>
@@ -104,7 +145,7 @@ const LectureDetailsModal: React.FC<LectureDetailsModalProps> = ({
             <div className="flex items-start gap-3 p-3 bg-slate-50 rounded-lg border border-slate-100">
               <Award className="w-5 h-5 text-indigo-500 mt-0.5" />
               <div>
-                <p className="text-xs text-slate-500">Carga horaria</p>
+                <p className="text-xs text-slate-500">Carga Horária</p>
                 <p className="text-sm font-medium text-slate-800">
                   {formatCargaHoraria(palestra)}
                 </p>
@@ -113,13 +154,48 @@ const LectureDetailsModal: React.FC<LectureDetailsModalProps> = ({
           </div>
         </div>
 
-        <div className="p-4 sm:p-6 border-t border-slate-100 bg-slate-50 flex justify-end">
-          <button
-            onClick={onClose}
-            className="px-4 py-2 bg-slate-600 text-white hover:bg-slate-700 rounded-lg font-medium transition-colors"
-          >
-            Fechar
-          </button>
+        {/* Footer com ações */}
+        <div className="p-4 sm:p-6 border-t border-slate-100 bg-slate-50 flex items-center justify-between gap-3">
+          {!isInscrito && !isInscritoEvento ? (
+            <>
+              <p className="text-xs text-slate-400 italic">
+                Inscreva-se no evento para participar
+              </p>
+              <button
+                onClick={onClose}
+                className="px-4 py-2 bg-slate-200 text-slate-600 hover:bg-slate-300 rounded-lg font-medium transition-colors text-sm"
+              >
+                Fechar
+              </button>
+            </>
+          ) : !isInscrito ? (
+            <>
+              <button
+                onClick={onClose}
+                className="px-4 py-2 bg-slate-200 text-slate-600 hover:bg-slate-300 rounded-lg font-medium transition-colors text-sm"
+              >
+                Fechar
+              </button>
+              <button
+                onClick={onInscrever}
+                className="px-5 py-2.5 bg-indigo-600 text-white hover:bg-indigo-700 rounded-lg font-bold transition-colors text-sm flex items-center gap-1.5 shadow-sm"
+              >
+                Inscrever-se <ChevronRight className="w-4 h-4" />
+              </button>
+            </>
+          ) : (
+            <>
+              <span className="text-xs font-semibold text-emerald-600 flex items-center gap-1.5 bg-emerald-50 px-3 py-1.5 rounded-lg border border-emerald-200">
+                <CheckCircle className="w-3.5 h-3.5" /> Você está inscrito
+              </span>
+              <button
+                onClick={onClose}
+                className="px-4 py-2 bg-slate-600 text-white hover:bg-slate-700 rounded-lg font-medium transition-colors text-sm"
+              >
+                Fechar
+              </button>
+            </>
+          )}
         </div>
       </div>
     </div>

@@ -119,9 +119,13 @@ const StudentHome: React.FC<StudentHomeProps> = ({
       items = items.filter((p: any) => p.tipo === "ATIVIDADE");
     if (activeFilter === "inscricoes")
       items = items.filter((p: any) => isInscritoPalestra(p.id));
-    
+
     // Sort by date
-    return items.sort((a,b) => new Date(a.data_hora_inicio).getTime() - new Date(b.data_hora_inicio).getTime());
+    return items.sort(
+      (a, b) =>
+        new Date(a.data_hora_inicio).getTime() -
+        new Date(b.data_hora_inicio).getTime(),
+    );
   }, [palestrasEvento, activeFilter, minhasInscricoes]);
 
   if (loading) {
@@ -156,7 +160,9 @@ const StudentHome: React.FC<StudentHomeProps> = ({
         <div>
           <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 tracking-tight">
             Olá, {user.nome.split(" ")[0]}
-            <span className="ml-2 inline-block animate-wave origin-[70%_70%]">👋</span>
+            <span className="ml-2 inline-block animate-wave origin-[70%_70%]">
+              👋
+            </span>
           </h1>
           <p className="text-sm font-medium text-slate-500 mt-1 flex items-center gap-2">
             <span className="bg-slate-100 px-2 py-0.5 rounded text-xs text-slate-600 border border-slate-200">
@@ -256,14 +262,18 @@ const StudentHome: React.FC<StudentHomeProps> = ({
                       bg: "bg-emerald-50",
                       border: "border-emerald-200",
                       text: "text-emerald-800",
-                      icon: <CheckCircle className="w-5 h-5 text-emerald-600" />,
+                      icon: (
+                        <CheckCircle className="w-5 h-5 text-emerald-600" />
+                      ),
                     };
                   case "warning":
                     return {
                       bg: "bg-amber-50",
                       border: "border-amber-200",
                       text: "text-amber-800",
-                      icon: <AlertTriangle className="w-5 h-5 text-amber-600" />,
+                      icon: (
+                        <AlertTriangle className="w-5 h-5 text-amber-600" />
+                      ),
                     };
                   case "error":
                     return {
@@ -297,14 +307,18 @@ const StudentHome: React.FC<StudentHomeProps> = ({
                     <X className="w-4 h-4" />
                   </button>
                   <div className="flex gap-4">
-                    <div className={`mt-0.5 p-2 bg-white/50 rounded-xl rounded-tl-none`}>
+                    <div
+                      className={`mt-0.5 p-2 bg-white/50 rounded-xl rounded-tl-none`}
+                    >
                       {styles.icon}
                     </div>
                     <div className="flex-1 pr-6 pt-1">
                       <h4 className={`font-bold text-sm ${styles.text}`}>
                         {aviso.titulo}
                       </h4>
-                      <p className={`text-sm mt-1 ${styles.text} opacity-90 leading-relaxed`}>
+                      <p
+                        className={`text-sm mt-1 ${styles.text} opacity-90 leading-relaxed`}
+                      >
                         {aviso.mensagem}
                       </p>
                     </div>
@@ -328,15 +342,20 @@ const StudentHome: React.FC<StudentHomeProps> = ({
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-75"></span>
                 <span className="relative inline-flex rounded-full h-3 w-3 bg-rose-500"></span>
               </span>
-              <h2 className="text-lg font-bold text-slate-800">Acontecendo Agora</h2>
+              <h2 className="text-lg font-bold text-slate-800">
+                Acontecendo Agora
+              </h2>
             </div>
-            
+
             <div className="grid grid-cols-1 gap-4">
-              {happeningNow.map(palestra => (
-                <AnimatedCard key={palestra.id} className="bg-linear-to-r from-slate-900 to-slate-800 text-white border-0 shadow-xl shadow-slate-200 relative overflow-hidden group">
+              {happeningNow.map((palestra) => (
+                <AnimatedCard
+                  key={palestra.id}
+                  className="bg-linear-to-r from-slate-900 to-slate-800 text-white border-0 shadow-xl shadow-slate-200 relative overflow-hidden group"
+                >
                   <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20 brightness-100 contrast-150"></div>
                   <div className="absolute right-0 top-0 w-64 h-64 bg-rose-500/20 rounded-full blur-3xl -mr-16 -mt-16 group-hover:bg-rose-500/30 transition-all duration-700"></div>
-                  
+
                   <div className="relative z-10 p-5 sm:p-6">
                     <div className="flex justify-between items-start mb-4">
                       <div className="flex gap-2">
@@ -344,37 +363,44 @@ const StudentHome: React.FC<StudentHomeProps> = ({
                           <Flame className="w-3 h-3" /> Ao Vivo
                         </span>
                         <span className="bg-white/10 text-white/90 text-[10px] font-bold px-2 py-1 rounded-md flex items-center gap-1 backdrop-blur-sm">
-                          <Clock className="w-3 h-3" /> Até {new Date(palestra.data_hora_fim).toLocaleTimeString('pt-BR', {hour: '2-digit', minute: '2-digit'})}
+                          <Clock className="w-3 h-3" /> Até{" "}
+                          {new Date(palestra.data_hora_fim).toLocaleTimeString(
+                            "pt-BR",
+                            { hour: "2-digit", minute: "2-digit" },
+                          )}
                         </span>
                       </div>
                       <div className="text-xs font-medium text-slate-400 bg-slate-800/50 px-2 py-1 rounded border border-slate-700">
                         {palestra.sala || "Local a definir"}
                       </div>
                     </div>
-                    
+
                     <h3 className="text-xl sm:text-2xl font-bold mb-2 leading-tight pr-4">
                       {palestra.titulo}
                     </h3>
                     <p className="text-slate-300 text-sm mb-6 line-clamp-1">
-                      Com {palestra.palestrante_nome || palestra.palestrante?.nome || "Palestrante Convidado"}
+                      Com{" "}
+                      {palestra.palestrante_nome ||
+                        palestra.palestrante?.nome ||
+                        "Palestrante Convidado"}
                     </p>
 
                     <div className="flex gap-3">
-                         {isInscritoPalestra(palestra.id) ? (
-                            <TactileButton 
-                              onClick={onOpenScanner}
-                              className="bg-emerald-500 hover:bg-emerald-600 text-white border-0 font-semibold shadow-lg shadow-emerald-900/20 flex-1 py-3"
-                            >
-                              <QrCode className="w-5 h-5 mr-2" /> Registrar Presença
-                            </TactileButton>
-                         ) : (
-                            <TactileButton 
-                              onClick={() => onInscreverPalestra(palestra.id)}
-                              className="bg-white hover:bg-slate-50 text-slate-900 border-0 font-semibold shadow-lg shadow-white/10 flex-1 py-3"
-                            >
-                               Inscrever-se Agora
-                            </TactileButton>
-                         )}
+                      {isInscritoPalestra(palestra.id) ? (
+                        <TactileButton
+                          onClick={onOpenScanner}
+                          className="bg-emerald-500 hover:bg-emerald-600 text-white border-0 font-semibold shadow-lg shadow-emerald-900/20 flex-1 py-3"
+                        >
+                          <QrCode className="w-5 h-5 mr-2" /> Registrar Presença
+                        </TactileButton>
+                      ) : (
+                        <TactileButton
+                          onClick={() => onInscreverPalestra(palestra.id)}
+                          className="bg-white hover:bg-slate-50 text-slate-900 border-0 font-semibold shadow-lg shadow-white/10 flex-1 py-3"
+                        >
+                          Inscrever-se Agora
+                        </TactileButton>
+                      )}
                     </div>
                   </div>
                 </AnimatedCard>
@@ -406,7 +432,8 @@ const StudentHome: React.FC<StudentHomeProps> = ({
                 <span className="bg-indigo-400/30 text-indigo-50 text-xs px-3 py-1.5 rounded-full mb-4 inline-flex items-center gap-2 backdrop-blur-md border border-indigo-400/30 font-medium">
                   <CalendarDays className="w-3.5 h-3.5" />
                   {new Date(eventoSelecionado.data_inicio).toLocaleDateString(
-                    "pt-BR", { weekday: 'long', day: 'numeric', month: 'long' }
+                    "pt-BR",
+                    { weekday: "long", day: "numeric", month: "long" },
                   )}
                 </span>
                 <h2 className="text-2xl sm:text-4xl font-extrabold mb-2 leading-tight tracking-tight">
@@ -416,10 +443,10 @@ const StudentHome: React.FC<StudentHomeProps> = ({
                   <MapPin className="w-4 h-4" />
                   {eventoSelecionado.local || "Auditório Principal"}
                 </div>
-                
+
                 <CountdownTimer targetDate={eventoSelecionado.data_inicio} />
               </div>
-              
+
               <div className="w-full sm:w-auto">
                 {!isInscritoEvento(eventoSelecionado.id) ? (
                   <TactileButton
@@ -443,190 +470,287 @@ const StudentHome: React.FC<StudentHomeProps> = ({
       {/* Upcoming Horizontal Scroll */}
       {upcomingActivities.length > 0 && (
         <div className="py-2">
-            <div className="flex justify-between items-end px-1 mb-3">
-                 <h3 className="text-lg font-bold text-slate-800">Próximas Atividades</h3>
-                 <button onClick={() => setActiveFilter('todos')} className="text-xs text-indigo-600 font-semibold flex items-center gap-0.5 hover:underline">
-                    Ver todas <ChevronRight className="w-3 h-3" />
-                 </button>
-            </div>
-            <div className="flex overflow-x-auto gap-4 pb-4 -mx-4 px-4 snap-x hide-scrollbar">
-                {upcomingActivities.map(palestra => (
-                    <motion.div 
-                        initial={{ opacity: 0, x: 20 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        key={palestra.id} 
-                        className="snap-center shrink-0 w-70 sm:w-80 bg-white rounded-2xl p-4 border border-slate-100 shadow-sm relative overflow-hidden group hover:shadow-md transition-all"
+          <div className="flex justify-between items-end px-1 mb-3">
+            <h3 className="text-lg font-bold text-slate-800">
+              Próximas Atividades
+            </h3>
+            <button
+              onClick={() => setActiveFilter("todos")}
+              className="text-xs text-indigo-600 font-semibold flex items-center gap-0.5 hover:underline"
+            >
+              Ver todas <ChevronRight className="w-3 h-3" />
+            </button>
+          </div>
+          <div className="flex overflow-x-auto gap-4 pb-4 -mx-4 px-4 snap-x hide-scrollbar">
+            {upcomingActivities.map((palestra) => (
+              <motion.div
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                key={palestra.id}
+                className="snap-center shrink-0 w-70 sm:w-80 bg-white rounded-2xl p-4 border border-slate-100 shadow-sm relative overflow-hidden group hover:shadow-md transition-all"
+              >
+                <div className="absolute top-0 right-0 w-24 h-24 bg-indigo-50 rounded-bl-full -mr-4 -mt-4 opacity-50 group-hover:scale-110 transition-transform"></div>
+
+                <div className="relative z-10 flex flex-col h-full">
+                  <span className="bg-slate-100 text-slate-600 text-[10px] font-bold px-2 py-1 rounded self-start mb-2 inline-flex items-center gap-1">
+                    <Clock className="w-3 h-3" />
+                    {new Date(palestra.data_hora_inicio).toLocaleTimeString(
+                      "pt-BR",
+                      { hour: "2-digit", minute: "2-digit" },
+                    )}
+                  </span>
+
+                  <h4 className="font-bold text-slate-800 text-lg mb-1 leading-snug line-clamp-2">
+                    {palestra.titulo}
+                  </h4>
+                  <p className="text-xs text-slate-500 mb-4 font-medium">
+                    {palestra.palestrante_nome || palestra.palestrante?.nome}
+                  </p>
+
+                  <div className="mt-auto flex items-center justify-between border-t border-slate-50 pt-3">
+                    <div className="text-xs font-semibold text-slate-400 flex items-center gap-1">
+                      <MapPin className="w-3 h-3" />
+                      {palestra.sala || "TBD"}
+                    </div>
+                    <button
+                      onClick={() => onViewDetails(palestra)}
+                      className="text-xs bg-indigo-50 text-indigo-600 px-3 py-1.5 rounded-lg font-bold hover:bg-indigo-100 transition-colors"
                     >
-                         <div className="absolute top-0 right-0 w-24 h-24 bg-indigo-50 rounded-bl-full -mr-4 -mt-4 opacity-50 group-hover:scale-110 transition-transform"></div>
-                         
-                         <div className="relative z-10 flex flex-col h-full">
-                            <span className="bg-slate-100 text-slate-600 text-[10px] font-bold px-2 py-1 rounded self-start mb-2 inline-flex items-center gap-1">
-                                <Clock className="w-3 h-3" />
-                                {new Date(palestra.data_hora_inicio).toLocaleTimeString('pt-BR', {hour: '2-digit', minute: '2-digit'})}
-                            </span>
-                            
-                            <h4 className="font-bold text-slate-800 text-lg mb-1 leading-snug line-clamp-2">
-                                {palestra.titulo}
-                            </h4>
-                            <p className="text-xs text-slate-500 mb-4 font-medium">
-                                {palestra.palestrante_nome || palestra.palestrante?.nome}
-                            </p>
-                            
-                            <div className="mt-auto flex items-center justify-between border-t border-slate-50 pt-3">
-                                 <div className="text-xs font-semibold text-slate-400 flex items-center gap-1">
-                                    <MapPin className="w-3 h-3" />
-                                    {palestra.sala || "TBD"}
-                                 </div>
-                                 <button 
-                                  onClick={() =>
-                                    isInscritoPalestra(palestra.id)
-                                     ? onViewDetails(palestra)
-                                     : onInscreverPalestra(palestra.id)
-                                  }
-                                    className="text-xs bg-indigo-50 text-indigo-600 px-3 py-1.5 rounded-lg font-bold hover:bg-indigo-100 transition-colors"
-                                 >
-                                    {isInscritoPalestra(palestra.id) ? "Ver Detalhes" : "Inscrever"}
-                                 </button>
-                            </div>
-                         </div>
-                    </motion.div>
-                ))}
-            </div>
+                      Ver Detalhes
+                    </button>
+                  </div>
+                </div>
+              </motion.div>
+            ))}
+          </div>
         </div>
       )}
 
       {/* Main List with Filters */}
       <div className="space-y-4 min-h-100">
-          <div className="flex gap-2 overflow-x-auto pb-2 -mx-4 px-4 sm:mx-0 sm:px-0 hide-scrollbar scroll-smooth">
-             <FilterChip label="Tudo" active={activeFilter === 'todos'} onClick={() => setActiveFilter('todos')} />
-             <FilterChip label="Palestras" count={palestrasEvento.filter(p => (p.tipo||'PALESTRA') === 'PALESTRA').length} active={activeFilter === 'palestras'} onClick={() => setActiveFilter('palestras')} />
-             <FilterChip label="Atividades" count={palestrasEvento.filter(p => p.tipo === 'ATIVIDADE').length} active={activeFilter === 'atividades'} onClick={() => setActiveFilter('atividades')} />
-             <FilterChip label="Minhas Inscrições" count={minhasInscricoes.palestras.length} active={activeFilter === 'inscricoes'} onClick={() => setActiveFilter('inscricoes')} />
-          </div>
+        <div className="flex gap-2 overflow-x-auto pb-2 -mx-4 px-4 sm:mx-0 sm:px-0 hide-scrollbar scroll-smooth">
+          <FilterChip
+            label="Tudo"
+            active={activeFilter === "todos"}
+            onClick={() => setActiveFilter("todos")}
+          />
+          <FilterChip
+            label="Palestras"
+            count={
+              palestrasEvento.filter(
+                (p) => (p.tipo || "PALESTRA") === "PALESTRA",
+              ).length
+            }
+            active={activeFilter === "palestras"}
+            onClick={() => setActiveFilter("palestras")}
+          />
+          <FilterChip
+            label="Atividades"
+            count={palestrasEvento.filter((p) => p.tipo === "ATIVIDADE").length}
+            active={activeFilter === "atividades"}
+            onClick={() => setActiveFilter("atividades")}
+          />
+          <FilterChip
+            label="Minhas Inscrições"
+            count={minhasInscricoes.palestras.length}
+            active={activeFilter === "inscricoes"}
+            onClick={() => setActiveFilter("inscricoes")}
+          />
+        </div>
 
-          <div className="space-y-3">
-              <LayoutGroup>
-              <AnimatePresence mode="popLayout">
-                  {filteredList.length === 0 ? (
-                      <motion.div 
-                        initial={{ opacity: 0 }} animate={{ opacity: 1 }} 
-                        className="text-center py-12 bg-slate-50 rounded-2xl border border-dashed border-slate-200"
+        <div className="space-y-3">
+          <LayoutGroup>
+            <AnimatePresence mode="popLayout">
+              {filteredList.length === 0 ? (
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  className="text-center py-12 bg-slate-50 rounded-2xl border border-dashed border-slate-200"
+                >
+                  <Calendar className="w-12 h-12 text-slate-300 mx-auto mb-3" />
+                  <p className="text-slate-500 font-medium">
+                    Nenhuma atividade encontrada
+                  </p>
+                  <p className="text-slate-400 text-sm mt-1">
+                    Tente mudar o filtro selecionado
+                  </p>
+                </motion.div>
+              ) : (
+                filteredList.map((palestra) => {
+                  const inscrito = isInscritoPalestra(palestra.id);
+                  const presente = presencaConfirmada(palestra.id);
+                  const isPast = new Date(palestra.data_hora_fim) < new Date();
+                  const isLive =
+                    new Date() >= new Date(palestra.data_hora_inicio) &&
+                    new Date() <= new Date(palestra.data_hora_fim);
+
+                  return (
+                    <motion.div
+                      layout
+                      initial={{ opacity: 0, scale: 0.98 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      exit={{ opacity: 0, scale: 0.98 }}
+                      key={palestra.id}
+                    >
+                      <AnimatedCard
+                        className={`p-0 border-0 shadow-sm hover:shadow-md transition-all overflow-hidden ${isLive ? "ring-2 ring-rose-500/50" : ""}`}
                       >
-                         <Calendar className="w-12 h-12 text-slate-300 mx-auto mb-3" />
-                         <p className="text-slate-500 font-medium">Nenhuma atividade encontrada</p>
-                         <p className="text-slate-400 text-sm mt-1">Tente mudar o filtro selecionado</p>
-                      </motion.div>
-                  ) : (
-                      filteredList.map(palestra => {
-                          const inscrito = isInscritoPalestra(palestra.id);
-                          const presente = presencaConfirmada(palestra.id);
-                          const isPast = new Date(palestra.data_hora_fim) < new Date();
-                          const isLive = new Date() >= new Date(palestra.data_hora_inicio) && new Date() <= new Date(palestra.data_hora_fim);
+                        <div className="p-5 flex gap-4">
+                          {/* Time Column */}
+                          <div className="flex flex-col items-center justify-start min-w-14 border-r border-slate-50 pr-4">
+                            <span className="text-lg font-bold text-slate-800">
+                              {new Date(
+                                palestra.data_hora_inicio,
+                              ).toLocaleTimeString("pt-BR", {
+                                hour: "2-digit",
+                                minute: "2-digit",
+                              })}
+                            </span>
+                            <span className="text-xs font-semibold text-slate-400 uppercase">
+                              {new Date(palestra.data_hora_inicio)
+                                .toLocaleDateString("pt-BR", {
+                                  weekday: "short",
+                                })
+                                .replace(".", "")}
+                            </span>
+                            {isLive && (
+                              <span className="mt-2 w-2 h-2 rounded-full bg-rose-500 animate-pulse"></span>
+                            )}
+                          </div>
 
-                          return (
-                              <motion.div
-                                layout
-                                initial={{ opacity: 0, scale: 0.98 }}
-                                animate={{ opacity: 1, scale: 1 }}
-                                exit={{ opacity: 0, scale: 0.98 }}
-                                key={palestra.id}
+                          {/* Content */}
+                          <div className="flex-1 min-w-0 py-0.5">
+                            <div className="flex items-start justify-between gap-2 mb-1">
+                              <div className="flex items-center gap-2 flex-wrap">
+                                {palestra.tipo === "ATIVIDADE" && (
+                                  <span className="text-[10px] font-bold bg-amber-100 text-amber-700 px-1.5 py-0.5 rounded">
+                                    ATIVIDADE
+                                  </span>
+                                )}
+                                <h4 className="font-bold text-slate-800 text-base leading-tight">
+                                  {palestra.titulo}
+                                </h4>
+                              </div>
+                            </div>
+
+                            <p className="text-sm text-slate-500 mb-3 truncate">
+                              {palestra.palestrante_nome ||
+                                palestra.palestrante?.nome ||
+                                "Palestrante Convidado"}
+                            </p>
+
+                            <div className="flex flex-wrap items-center gap-3 text-xs text-slate-400">
+                              <span className="flex items-center gap-1 bg-slate-50 px-2 py-1 rounded">
+                                <MapPin className="w-3 h-3" />{" "}
+                                {palestra.sala || "TBD"}
+                              </span>
+                              <span className="flex items-center gap-1 bg-slate-50 px-2 py-1 rounded">
+                                <Award className="w-3 h-3" />{" "}
+                                {palestra.carga_horaria}h
+                              </span>
+
+                              <div className="ml-auto flex gap-2">
+                                {presente ? (
+                                  <Badge
+                                    color="green"
+                                    icon={<CheckCircle className="w-3 h-3" />}
+                                  >
+                                    Presente
+                                  </Badge>
+                                ) : isPast ? (
+                                  <Badge
+                                    color="red"
+                                    icon={<Info className="w-3 h-3" />}
+                                  >
+                                    Encerrado
+                                  </Badge>
+                                ) : inscrito ? (
+                                  <Badge
+                                    color="blue"
+                                    icon={<CheckCircle className="w-3 h-3" />}
+                                  >
+                                    Inscrito
+                                  </Badge>
+                                ) : null}
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Actions Footer */}
+                        {(!isPast || presente) && (
+                          <div className="bg-slate-50 px-5 py-3 flex justify-between items-center border-t border-slate-100">
+                            {!isInscritoEvento(eventoSelecionado.id) ? (
+                              <span className="text-xs text-slate-400 italic">
+                                Inscreva-se no evento para participar
+                              </span>
+                            ) : !inscrito ? (
+                              <div className="flex gap-3 w-full justify-end">
+                                <button
+                                  onClick={() => onViewDetails(palestra)}
+                                  className="text-xs font-bold text-slate-500 hover:text-slate-700 flex items-center gap-1"
+                                >
+                                  <FileText className="w-3 h-3" /> Detalhes
+                                </button>
+                                <button
+                                  onClick={() =>
+                                    onInscreverPalestra(palestra.id)
+                                  }
+                                  className="text-xs font-bold text-indigo-600 hover:text-indigo-700 flex items-center gap-1"
+                                >
+                                  Inscrever-se{" "}
+                                  <ChevronRight className="w-3 h-3" />
+                                </button>
+                              </div>
+                            ) : !presente && !isPast ? (
+                              <div className="flex gap-3 w-full items-center">
+                                <button
+                                  onClick={() => onViewDetails(palestra)}
+                                  className="text-xs font-bold text-slate-500 hover:text-slate-700 flex items-center gap-1"
+                                >
+                                  <FileText className="w-3.5 h-3.5" /> Detalhes
+                                </button>
+                                <TactileButton
+                                  onClick={onOpenScanner}
+                                  size="sm"
+                                  className="flex-1 bg-slate-900 text-white border-0 text-xs py-2 h-auto"
+                                >
+                                  <QrCode className="w-3.5 h-3.5 mr-1.5" />{" "}
+                                  Registrar
+                                </TactileButton>
+                                <TactileButton
+                                  onClick={() =>
+                                    onDownloadComprovanteInscricao(palestra.id)
+                                  }
+                                  size="sm"
+                                  variant="secondary"
+                                  className="px-3 bg-white border border-slate-200 h-auto"
+                                >
+                                  <Download className="w-3.5 h-3.5 text-slate-500" />
+                                </TactileButton>
+                              </div>
+                            ) : presente ? (
+                              <button
+                                onClick={() =>
+                                  onDownloadComprovantePresenca(palestra.id)
+                                }
+                                className="text-xs font-bold text-green-600 hover:text-green-700 flex items-center gap-1 ml-auto"
                               >
-                                  <AnimatedCard className={`p-0 border-0 shadow-sm hover:shadow-md transition-all overflow-hidden ${isLive ? 'ring-2 ring-rose-500/50' : ''}`}>
-                                      <div className="p-5 flex gap-4">
-                                          {/* Time Column */}
-                                          <div className="flex flex-col items-center justify-start min-w-14 border-r border-slate-50 pr-4">
-                                              <span className="text-lg font-bold text-slate-800">
-                                                  {new Date(palestra.data_hora_inicio).toLocaleTimeString('pt-BR', {hour: '2-digit', minute: '2-digit'})}
-                                              </span>
-                                              <span className="text-xs font-semibold text-slate-400 uppercase">
-                                                  {new Date(palestra.data_hora_inicio).toLocaleDateString('pt-BR', {weekday: 'short'}).replace('.', '')}
-                                              </span>
-                                              {isLive && (
-                                                <span className="mt-2 w-2 h-2 rounded-full bg-rose-500 animate-pulse"></span>
-                                              )}
-                                          </div>
-                                          
-                                          {/* Content */}
-                                          <div className="flex-1 min-w-0 py-0.5">
-                                              <div className="flex items-start justify-between gap-2 mb-1">
-                                                  <div className="flex items-center gap-2 flex-wrap">
-                                                      {(palestra.tipo === 'ATIVIDADE') && (
-                                                          <span className="text-[10px] font-bold bg-amber-100 text-amber-700 px-1.5 py-0.5 rounded">
-                                                              ATIVIDADE
-                                                          </span>
-                                                      )}
-                                                      <h4 className="font-bold text-slate-800 text-base leading-tight">
-                                                          {palestra.titulo}
-                                                      </h4>
-                                                  </div>
-                                              </div>
-                                              
-                                              <p className="text-sm text-slate-500 mb-3 truncate">
-                                                {palestra.palestrante_nome || palestra.palestrante?.nome || "Palestrante Convidado"}
-                                              </p>
-
-                                              <div className="flex flex-wrap items-center gap-3 text-xs text-slate-400">
-                                                  <span className="flex items-center gap-1 bg-slate-50 px-2 py-1 rounded">
-                                                      <MapPin className="w-3 h-3" /> {palestra.sala || "TBD"}
-                                                  </span>
-                                                  <span className="flex items-center gap-1 bg-slate-50 px-2 py-1 rounded">
-                                                      <Award className="w-3 h-3" /> {palestra.carga_horaria}h
-                                                  </span>
-                                                  
-                                                  <div className="ml-auto flex gap-2">
-                                                     {presente ? (
-                                                        <Badge color="green" icon={<CheckCircle className="w-3 h-3"/>}>Presente</Badge>
-                                                     ) : isPast ? (
-                                                        <Badge color="red" icon={<Info className="w-3 h-3"/>}>Encerrado</Badge>
-                                                     ) : inscrito ? (
-                                                        <Badge color="blue" icon={<CheckCircle className="w-3 h-3"/>}>Inscrito</Badge>
-                                                     ) : null}
-                                                  </div>
-                                              </div>
-                                          </div>
-                                      </div>
-
-                                      {/* Actions Footer */}
-                                      {(!isPast || presente) && (
-                                          <div className="bg-slate-50 px-5 py-3 flex justify-between items-center border-t border-slate-100">
-                                               {!isInscritoEvento(eventoSelecionado.id) ? (
-                                                   <span className="text-xs text-slate-400 italic">Inscreva-se no evento para participar</span>
-                                               ) : !inscrito ? (
-                                                  <button 
-                                                    onClick={() => onInscreverPalestra(palestra.id)}
-                                                    className="text-xs font-bold text-indigo-600 hover:text-indigo-700 flex items-center gap-1 ml-auto"
-                                                  >
-                                                     Inscrever-se <ChevronRight className="w-3 h-3" />
-                                                  </button>
-                                               ) : !presente && !isPast ? (
-                                                   <div className="flex gap-3 w-full">
-                                                       <TactileButton onClick={onOpenScanner} size="sm" className="flex-1 bg-slate-900 text-white border-0 text-xs py-2 h-auto">
-                                                           <QrCode className="w-3.5 h-3.5 mr-1.5" /> Registrar
-                                                       </TactileButton>
-                                                       <TactileButton onClick={() => onDownloadComprovanteInscricao(palestra.id)} size="sm" variant="secondary" className="px-3 bg-white border border-slate-200 h-auto">
-                                                           <Download className="w-3.5 h-3.5 text-slate-500" />
-                                                       </TactileButton>
-                                                   </div>
-                                               ) : presente ? (
-                                                   <button 
-                                                      onClick={() => onDownloadComprovantePresenca(palestra.id)}
-                                                      className="text-xs font-bold text-green-600 hover:text-green-700 flex items-center gap-1 ml-auto"
-                                                   >
-                                                      <Download className="w-3 h-3" /> Certificado/Comprovante
-                                                   </button>
-                                               ) : null}
-                                          </div>
-                                      )}
-                                  </AnimatedCard>
-                              </motion.div>
-                          );
-                      })
-                  )}
-              </AnimatePresence>
-              </LayoutGroup>
-          </div>
+                                <Download className="w-3 h-3" />{" "}
+                                Certificado/Comprovante
+                              </button>
+                            ) : null}
+                          </div>
+                        )}
+                      </AnimatedCard>
+                    </motion.div>
+                  );
+                })
+              )}
+            </AnimatePresence>
+          </LayoutGroup>
+        </div>
       </div>
-
     </div>
   );
 };
