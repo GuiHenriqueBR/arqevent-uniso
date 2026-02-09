@@ -11,6 +11,7 @@ import {
   Link2,
 } from "lucide-react";
 import { Evento } from "../../../services/api";
+import ImageUpload from "../ui/ImageUpload";
 
 interface EventModalProps {
   isOpen: boolean;
@@ -170,122 +171,18 @@ const EventModal: React.FC<EventModalProps> = ({
           </div>
           {/* Banner do Evento */}
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">
-              Banner / Imagem de Capa
-            </label>
-            <div className="space-y-2">
-              <div className="flex gap-2">
-                <div className="relative flex-1">
-                  <ImagePlus className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-                  <input
-                    type="url"
-                    value={form.banner_url}
-                    onChange={(e) => {
-                      setForm({ ...form, banner_url: e.target.value });
-                      setBannerError(false);
-                      setShowBannerPreview(!!e.target.value);
-                    }}
-                    className="w-full pl-10 pr-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-shadow text-sm"
-                    placeholder="https://exemplo.com/banner.jpg"
-                  />
-                </div>
-                {form.banner_url && (
-                  <button
-                    type="button"
-                    onClick={() => setShowBannerPreview(!showBannerPreview)}
-                    className="px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-lg transition-colors"
-                    title="Visualizar"
-                  >
-                    <Eye className="w-4 h-4" />
-                  </button>
-                )}
-                {form.banner_url && (
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setForm({ ...form, banner_url: "" });
-                      setShowBannerPreview(false);
-                      setBannerError(false);
-                    }}
-                    className="px-3 py-2 bg-red-50 hover:bg-red-100 text-red-500 rounded-lg transition-colors"
-                    title="Remover"
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </button>
-                )}
-              </div>
-
-              {/* Banner Preview */}
-              {showBannerPreview && previewUrl && (
-                <div className="relative rounded-xl overflow-hidden border border-slate-200 bg-slate-900 aspect-video">
-                  {!bannerError ? (
-                    <img
-                      src={previewUrl}
-                      alt="Preview do banner"
-                      className="w-full h-full object-cover"
-                      onError={() => setBannerError(true)}
-                    />
-                  ) : (
-                    <div className="flex flex-col items-center justify-center h-full text-slate-400 gap-2">
-                      <AlertCircle className="w-8 h-8" />
-                      <span className="text-xs">
-                        Não foi possível carregar a imagem
-                      </span>
-                      <span className="text-[10px] text-slate-500">
-                        Verifique se a URL está correta
-                      </span>
-                    </div>
-                  )}
-                  {/* Simulated overlay like the student view */}
-                  {!bannerError && (
-                    <div className="absolute bottom-0 left-0 right-0 bg-linear-to-t from-black/75 via-black/20 to-transparent p-3">
-                      <div className="flex items-center gap-2 mb-1">
-                        {form.destaque && (
-                          <span className="text-[9px] font-bold text-white/90 bg-white/15 border border-white/20 px-2 py-0.5 rounded-full">
-                            Evento principal
-                          </span>
-                        )}
-                        {form.status_manual !== "AUTO" && (
-                          <span className="text-[9px] font-bold text-white/90 bg-rose-500/70 border border-rose-200/20 px-2 py-0.5 rounded-full">
-                            {form.status_manual.replace("_", " ")}
-                          </span>
-                        )}
-                      </div>
-                      <p className="text-white text-xs font-bold truncate">
-                        {form.titulo || "Titulo do Evento"}
-                      </p>
-                      {form.descricao && (
-                        <p className="text-white/70 text-[10px] truncate mt-0.5">
-                          {form.descricao}
-                        </p>
-                      )}
-                    </div>
-                  )}
-                </div>
-              )}
-
-              <p className="text-[11px] text-slate-400">
-                Cole a URL de uma imagem. Dica: use o{" "}
-                <a
-                  href="https://postimages.org/"
-                  target="_blank"
-                  rel="noreferrer"
-                  className="text-indigo-500 hover:underline"
-                >
-                  PostImages
-                </a>{" "}
-                ou{" "}
-                <a
-                  href="https://imgur.com/"
-                  target="_blank"
-                  rel="noreferrer"
-                  className="text-indigo-500 hover:underline"
-                >
-                  Imgur
-                </a>{" "}
-                para hospedar sua imagem gratuitamente.
-              </p>
-            </div>
+            <ImageUpload
+              value={form.banner_url}
+              onChange={(url) => {
+                setForm({ ...form, banner_url: url });
+                setBannerError(false);
+                setShowBannerPreview(!!url);
+              }}
+              folder="eventos"
+              label="Banner / Imagem de Capa"
+              hint="Arraste ou clique para enviar. JPG, PNG ou WebP até 5MB."
+              previewHeight="h-48"
+            />
           </div>
 
           <div>

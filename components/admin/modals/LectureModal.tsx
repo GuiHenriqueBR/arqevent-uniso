@@ -14,6 +14,7 @@ import {
   GraduationCap,
 } from "lucide-react";
 import { Palestra, Evento } from "../../../services/api";
+import ImageUpload from "../ui/ImageUpload";
 
 const formatLocalDatetime = (d: Date): string => {
   const pad = (n: number) => String(n).padStart(2, "0");
@@ -501,48 +502,14 @@ const LectureModal: React.FC<LectureModalProps> = ({
 
             {/* Seção: Imagem de Capa */}
             <div className={sectionClass}>
-              <div className="flex items-center gap-2 text-slate-600 mb-3">
-                <FileText className="w-4 h-4" />
-                <span className="text-sm font-medium">
-                  Imagem de Capa (opcional)
-                </span>
-              </div>
-
-              <div>
-                <label className={labelClass}>URL da Imagem</label>
-                <input
-                  type="url"
-                  placeholder="https://exemplo.com/imagem.jpg"
-                  value={form.imagem_url}
-                  onChange={(e) =>
-                    setForm({ ...form, imagem_url: e.target.value })
-                  }
-                  className={inputClass}
-                />
-                <p className="text-xs text-slate-400 mt-1">
-                  Cole a URL de uma imagem para exibir como capa no card.
-                </p>
-              </div>
-
-              {form.imagem_url && (
-                <div className="mt-2 rounded-xl overflow-hidden border border-slate-200 relative">
-                  <img
-                    src={form.imagem_url}
-                    alt="Preview"
-                    className="w-full h-32 object-cover"
-                    onError={(e) => {
-                      (e.target as HTMLImageElement).style.display = "none";
-                    }}
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setForm({ ...form, imagem_url: "" })}
-                    className="absolute top-2 right-2 bg-white/90 p-1 rounded-full text-slate-500 hover:text-red-500"
-                  >
-                    <X className="w-4 h-4" />
-                  </button>
-                </div>
-              )}
+              <ImageUpload
+                value={form.imagem_url}
+                onChange={(url) => setForm({ ...form, imagem_url: url })}
+                folder="palestras"
+                label="Imagem de Capa (opcional)"
+                hint="Arraste ou clique para enviar. JPG, PNG ou WebP até 5MB."
+                previewHeight="h-32"
+              />
             </div>
 
             {/* Divisor */}
