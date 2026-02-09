@@ -376,6 +376,7 @@ export const palestrasApi = {
       carga_horaria_minutos: palestra.carga_horaria_minutos || null,
       palestrante_id: palestra.palestrante_id || null,
       palestrante_nome: palestra.palestrante_nome || null,
+      semestres_permitidos: palestra.semestres_permitidos || null,
       evento_id: eventoId,
       qr_code_hash,
       qr_expiration_seconds: palestra.qr_expiration_seconds || 60,
