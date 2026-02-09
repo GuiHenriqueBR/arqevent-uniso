@@ -8,6 +8,79 @@ import {
 } from "lucide-react";
 import { supabase } from "../../../supabaseClient";
 
+// --- Image compression utility ---
+const compressImage = (file: File, maxWidth = 1200, quality = 0.8): Promise<File> => {
+  return new Promise((resolve, reject) => {
+    // Skip GIFs (can't compress without losing animation)
+    if (file.type === "image/gif") {
+      resolve(file);
+      return;
+    }
+
+    const img = new Image();
+    const url = URL.createObjectURL(file);
+
+    img.onload = () => {
+      URL.revokeObjectURL(url);
+
+      // Skip if already small enough
+      if (img.width <= maxWidth && file.size <= 500 * 1024) {
+        resolve(file);
+        return;
+      }
+
+      const canvas = document.createElement("canvas");
+      let width = img.width;
+      let height = img.height;
+
+      // Scale down if wider than maxWidth
+      if (width > maxWidth) {
+        height = Math.round((height * maxWidth) / width);
+        width = maxWidth;
+      }
+
+      canvas.width = width;
+      canvas.height = height;
+
+      const ctx = canvas.getContext("2d");
+      if (!ctx) {
+        resolve(file);
+        return;
+      }
+
+      ctx.drawImage(img, 0, 0, width, height);
+
+      canvas.toBlob(
+        (blob) => {
+          if (!blob) {
+            resolve(file);
+            return;
+          }
+          // Use WebP output for better compression
+          const compressedFile = new File(
+            [blob],
+            file.name.replace(/\.[^.]+$/, ".webp"),
+            { type: "image/webp" }
+          );
+          console.log(
+            `[ImageUpload] Comprimido: ${(file.size / 1024).toFixed(0)}KB → ${(compressedFile.size / 1024).toFixed(0)}KB`
+          );
+          resolve(compressedFile);
+        },
+        "image/webp",
+        quality
+      );
+    };
+
+    img.onerror = () => {
+      URL.revokeObjectURL(url);
+      reject(new Error("Erro ao processar imagem"));
+    };
+
+    img.src = url;
+  });
+};
+
 interface ImageUploadProps {
   value: string;
   onChange: (url: string) => void;
@@ -15,6 +88,10 @@ interface ImageUploadProps {
   label?: string;
   hint?: string;
   previewHeight?: string;
+  /** Hide the label (useful when embedded in a gallery) */
+  hideLabel?: boolean;
+  /** Compact mode for gallery items */
+  compact?: boolean;
 }
 
 const ImageUpload: React.FC<ImageUploadProps> = ({
@@ -24,6 +101,8 @@ const ImageUpload: React.FC<ImageUploadProps> = ({
   label = "Imagem de Capa (opcional)",
   hint = "Arraste ou clique para enviar. JPG, PNG ou WebP até 5MB.",
   previewHeight = "h-40",
+  hideLabel = false,
+  compact = false,
 }) => {
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -40,22 +119,25 @@ const ImageUpload: React.FC<ImageUploadProps> = ({
       return;
     }
 
-    // Validate size (5MB)
-    if (file.size > 5 * 1024 * 1024) {
-      setError("Arquivo muito grande. Máximo 5MB.");
+    // Validate size (10MB raw, will be compressed)
+    if (file.size > 10 * 1024 * 1024) {
+      setError("Arquivo muito grande. Máximo 10MB.");
       return;
     }
 
     setUploading(true);
 
     try {
+      // Compress image before upload
+      const compressed = await compressImage(file);
+
       // Generate unique filename
-      const ext = file.name.split(".").pop()?.toLowerCase() || "jpg";
+      const ext = compressed.name.split(".").pop()?.toLowerCase() || "webp";
       const fileName = `${folder}/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
 
       const { error: uploadError } = await supabase.storage
         .from("imagens")
-        .upload(fileName, file, {
+        .upload(fileName, compressed, {
           cacheControl: "3600",
           upsert: false,
         });
@@ -111,9 +193,11 @@ const ImageUpload: React.FC<ImageUploadProps> = ({
 
   return (
     <div className="space-y-2">
-      <label className="block text-sm font-medium text-slate-700">
-        {label}
-      </label>
+      {!hideLabel && (
+        <label className="block text-sm font-medium text-slate-700">
+          {label}
+        </label>
+      )}
 
       {value ? (
         /* Preview with remove button */
@@ -157,7 +241,7 @@ const ImageUpload: React.FC<ImageUploadProps> = ({
           onDragLeave={() => setDragOver(false)}
           onDrop={handleDrop}
           onClick={() => !uploading && inputRef.current?.click()}
-          className={`relative border-2 border-dashed rounded-xl p-6 text-center cursor-pointer transition-all ${
+          className={`relative border-2 border-dashed rounded-xl ${compact ? "p-3" : "p-6"} text-center cursor-pointer transition-all ${
             dragOver
               ? "border-indigo-400 bg-indigo-50"
               : "border-slate-200 hover:border-indigo-300 hover:bg-slate-50"
@@ -173,21 +257,23 @@ const ImageUpload: React.FC<ImageUploadProps> = ({
 
           {uploading ? (
             <div className="flex flex-col items-center gap-2">
-              <Loader2 className="w-8 h-8 text-indigo-500 animate-spin" />
+              <Loader2 className={`${compact ? "w-5 h-5" : "w-8 h-8"} text-indigo-500 animate-spin`} />
               <p className="text-sm text-slate-500 font-medium">
-                Enviando imagem...
+                Comprimindo e enviando...
               </p>
             </div>
           ) : (
             <div className="flex flex-col items-center gap-2">
-              <div className="w-12 h-12 bg-indigo-50 rounded-full flex items-center justify-center">
-                <Upload className="w-6 h-6 text-indigo-500" />
-              </div>
+              {!compact && (
+                <div className="w-12 h-12 bg-indigo-50 rounded-full flex items-center justify-center">
+                  <Upload className="w-6 h-6 text-indigo-500" />
+                </div>
+              )}
               <div>
-                <p className="text-sm font-medium text-slate-700">
-                  Clique para escolher ou arraste aqui
+                <p className={`${compact ? "text-xs" : "text-sm"} font-medium text-slate-700`}>
+                  {compact ? "Clique ou arraste" : "Clique para escolher ou arraste aqui"}
                 </p>
-                <p className="text-xs text-slate-400 mt-0.5">{hint}</p>
+                {!compact && <p className="text-xs text-slate-400 mt-0.5">{hint}</p>}
               </div>
             </div>
           )}
