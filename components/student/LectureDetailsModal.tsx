@@ -80,7 +80,9 @@ const LectureDetailsModal: React.FC<LectureDetailsModalProps> = ({
             <h3 className="text-lg font-bold text-slate-800 leading-tight">
               {palestra.titulo}
             </h3>
-            <p className="text-sm text-slate-500 mt-0.5">{palestranteNome}</p>
+            {palestra.tipo !== "ATIVIDADE" && (
+              <p className="text-sm text-slate-500 mt-0.5">{palestranteNome}</p>
+            )}
           </div>
           <button
             onClick={onClose}
@@ -122,15 +124,17 @@ const LectureDetailsModal: React.FC<LectureDetailsModalProps> = ({
               </div>
             </div>
 
-            <div className="flex items-start gap-3 p-3 bg-slate-50 rounded-lg border border-slate-100">
-              <User className="w-5 h-5 text-indigo-500 mt-0.5" />
-              <div>
-                <p className="text-xs text-slate-500">Palestrante</p>
-                <p className="text-sm font-medium text-slate-800">
-                  {palestranteNome}
-                </p>
+            {palestra.tipo !== "ATIVIDADE" && (
+              <div className="flex items-start gap-3 p-3 bg-slate-50 rounded-lg border border-slate-100">
+                <User className="w-5 h-5 text-indigo-500 mt-0.5" />
+                <div>
+                  <p className="text-xs text-slate-500">Palestrante</p>
+                  <p className="text-sm font-medium text-slate-800">
+                    {palestranteNome}
+                  </p>
+                </div>
               </div>
-            </div>
+            )}
 
             <div className="flex items-start gap-3 p-3 bg-slate-50 rounded-lg border border-slate-100">
               <Clock className="w-5 h-5 text-indigo-500 mt-0.5" />
