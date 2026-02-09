@@ -56,7 +56,7 @@ const formatTime = (dateStr: string): string => {
 };
 
 const formatDayLabel = (dateStr: string): string => {
-  const d = new Date(dateStr);
+  const d = new Date(dateStr + "T00:00:00");
   const day = d.toLocaleDateString("pt-BR", {
     day: "2-digit",
     month: "2-digit",
@@ -68,7 +68,7 @@ const formatDayLabel = (dateStr: string): string => {
 };
 
 const isToday = (dateStr: string): boolean => {
-  const d = new Date(dateStr);
+  const d = new Date(dateStr + "T00:00:00");
   const today = new Date();
   return (
     d.getDate() === today.getDate() &&
