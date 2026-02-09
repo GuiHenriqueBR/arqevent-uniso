@@ -137,6 +137,7 @@ model Palestra {
   qr_code_hash          String?       @unique
   qr_expiration_seconds Int           @default(60)
   semestres_permitidos String?        // JSON array e.g. "[1,3,5]" or null = todos
+  imagem_url            String?
   created_at            DateTime      @default(now())
 
   evento          Evento    @relation(fields: [evento_id], references: [id], onDelete: Cascade)

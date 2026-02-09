@@ -122,7 +122,8 @@ const StudentCalendar: React.FC<StudentCalendarProps> = ({
     );
 
     sorted.forEach((p) => {
-      const dateKey = new Date(p.data_hora_inicio).toISOString().slice(0, 10);
+      const d = new Date(p.data_hora_inicio);
+      const dateKey = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
       if (!groups[dateKey]) groups[dateKey] = [];
       groups[dateKey].push(p);
     });
@@ -136,7 +137,8 @@ const StudentCalendar: React.FC<StudentCalendarProps> = ({
 
   useEffect(() => {
     if (days.length === 0) return;
-    const todayStr = new Date().toISOString().slice(0, 10);
+    const now = new Date();
+    const todayStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
     const todayDay = days.find((d) => d === todayStr);
     setSelectedDay(todayDay || days[0]);
   }, [days]);
@@ -276,7 +278,7 @@ const StudentCalendar: React.FC<StudentCalendarProps> = ({
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: idx * 0.05, duration: 0.25 }}
                     onClick={() => onViewDetails(palestra)}
-                    className={`w-full text-left rounded-2xl border transition-all active:scale-[0.98] ${
+                    className={`w-full text-left rounded-2xl border transition-all active:scale-[0.98] overflow-hidden ${
                       live
                         ? "bg-emerald-50 border-emerald-200 shadow-md shadow-emerald-100"
                         : inscrito
@@ -286,6 +288,17 @@ const StudentCalendar: React.FC<StudentCalendarProps> = ({
                             : "bg-white border-slate-200 hover:border-slate-300 shadow-sm hover:shadow-md"
                     }`}
                   >
+                    {/* Image Banner */}
+                    {palestra.imagem_url && (
+                      <div className="w-full h-28 overflow-hidden">
+                        <img
+                          src={palestra.imagem_url}
+                          alt={palestra.titulo}
+                          className="w-full h-full object-cover"
+                          loading="lazy"
+                        />
+                      </div>
+                    )}
                     <div className="flex">
                       {/* Time Column */}
                       <div

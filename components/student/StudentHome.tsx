@@ -739,11 +739,22 @@ const StudentHome: React.FC<StudentHomeProps> = ({
                 initial={{ opacity: 0, x: 20 }}
                 animate={{ opacity: 1, x: 0 }}
                 key={palestra.id}
-                className="snap-center shrink-0 w-70 sm:w-80 bg-white rounded-2xl p-4 border border-slate-100 shadow-sm relative overflow-hidden group hover:shadow-md transition-all"
+                className="snap-center shrink-0 w-70 sm:w-80 bg-white rounded-2xl border border-slate-100 shadow-sm relative overflow-hidden group hover:shadow-md transition-all"
               >
-                <div className="absolute top-0 right-0 w-24 h-24 bg-indigo-50 rounded-bl-full -mr-4 -mt-4 opacity-50 group-hover:scale-110 transition-transform"></div>
+                {palestra.imagem_url ? (
+                  <div className="w-full h-28 overflow-hidden">
+                    <img
+                      src={palestra.imagem_url}
+                      alt={palestra.titulo}
+                      className="w-full h-full object-cover"
+                      loading="lazy"
+                    />
+                  </div>
+                ) : (
+                  <div className="absolute top-0 right-0 w-24 h-24 bg-indigo-50 rounded-bl-full -mr-4 -mt-4 opacity-50 group-hover:scale-110 transition-transform"></div>
+                )}
 
-                <div className="relative z-10 flex flex-col h-full">
+                <div className="relative z-10 flex flex-col h-full p-4">
                   <span className="bg-slate-100 text-slate-600 text-[10px] font-bold px-2 py-1 rounded self-start mb-2 inline-flex items-center gap-1">
                     <Clock className="w-3 h-3" />
                     {new Date(palestra.data_hora_inicio).toLocaleTimeString(
@@ -847,6 +858,16 @@ const StudentHome: React.FC<StudentHomeProps> = ({
                       <AnimatedCard
                         className={`p-0 border-0 shadow-sm hover:shadow-md transition-all overflow-hidden ${isLive ? "ring-2 ring-rose-500/50" : ""}`}
                       >
+                        {palestra.imagem_url && (
+                          <div className="w-full h-32 overflow-hidden">
+                            <img
+                              src={palestra.imagem_url}
+                              alt={palestra.titulo}
+                              className="w-full h-full object-cover"
+                              loading="lazy"
+                            />
+                          </div>
+                        )}
                         <div className="p-5 flex gap-4">
                           {/* Time Column REFINED */}
                           <div className="flex flex-col items-center justify-center min-w-14 sm:min-w-16 text-center">

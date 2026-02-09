@@ -93,6 +93,17 @@ const LectureDetailsModal: React.FC<LectureDetailsModalProps> = ({
         </div>
 
         <div className="p-4 sm:p-6 space-y-5 overflow-y-auto">
+          {/* Imagem de capa */}
+          {palestra.imagem_url && (
+            <div className="w-full h-40 sm:h-52 rounded-xl overflow-hidden -mt-1">
+              <img
+                src={palestra.imagem_url}
+                alt={palestra.titulo}
+                className="w-full h-full object-cover"
+              />
+            </div>
+          )}
+
           {/* Descrição - Seção principal destacada */}
           <div className="border-l-4 border-indigo-400 bg-indigo-50/50 rounded-r-xl p-4 sm:p-5">
             <div className="flex items-center gap-2 mb-2">

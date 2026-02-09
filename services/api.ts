@@ -92,6 +92,7 @@ export interface Palestra {
   qr_code_hash?: string;
   qr_expiration_seconds?: number;
   semestres_permitidos?: string | null;
+  imagem_url?: string | null;
   created_at: string;
   palestrante?: { nome: string };
 }
@@ -377,6 +378,7 @@ export const palestrasApi = {
       palestrante_id: palestra.palestrante_id || null,
       palestrante_nome: palestra.palestrante_nome || null,
       semestres_permitidos: palestra.semestres_permitidos || null,
+      imagem_url: palestra.imagem_url || null,
       evento_id: eventoId,
       qr_code_hash,
       qr_expiration_seconds: palestra.qr_expiration_seconds || 60,

@@ -359,6 +359,7 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ user, onLogout }) => {
       carga_horaria_minutos: data.carga_horaria_minutos || null,
       qr_expiration_seconds: data.qr_expiration_seconds || 60,
       semestres_permitidos: data.semestres_permitidos || null,
+      imagem_url: data.imagem_url?.trim() || null,
     });
     setPalestras(palestras.map((p) => (p.id === updated.id ? updated : p)));
   };

@@ -15,6 +15,11 @@ import {
 } from "lucide-react";
 import { Palestra, Evento } from "../../../services/api";
 
+const formatLocalDatetime = (d: Date): string => {
+  const pad = (n: number) => String(n).padStart(2, "0");
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+};
+
 interface LectureModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -52,6 +57,7 @@ const LectureModal: React.FC<LectureModalProps> = ({
     palestrante_nome: "",
     qr_expiration_seconds: 60,
     semestres_permitidos: [] as number[],
+    imagem_url: "",
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -70,12 +76,10 @@ const LectureModal: React.FC<LectureModalProps> = ({
         titulo: initialData.titulo,
         descricao: initialData.descricao || "",
         tipo: (initialData.tipo as "PALESTRA" | "ATIVIDADE") || "PALESTRA",
-        data_hora_inicio: new Date(initialData.data_hora_inicio)
-          .toISOString()
-          .slice(0, 16),
-        data_hora_fim: new Date(initialData.data_hora_fim)
-          .toISOString()
-          .slice(0, 16),
+        data_hora_inicio: formatLocalDatetime(
+          new Date(initialData.data_hora_inicio),
+        ),
+        data_hora_fim: formatLocalDatetime(new Date(initialData.data_hora_fim)),
         sala: initialData.sala || "",
         vagas: initialData.vagas,
         carga_horaria: ehHoras ? minutos / 60 : minutos,
@@ -87,6 +91,7 @@ const LectureModal: React.FC<LectureModalProps> = ({
         semestres_permitidos: (initialData as any).semestres_permitidos
           ? JSON.parse((initialData as any).semestres_permitidos)
           : [],
+        imagem_url: (initialData as any).imagem_url || "",
       });
     } else {
       setForm({
@@ -105,6 +110,7 @@ const LectureModal: React.FC<LectureModalProps> = ({
         palestrante_nome: "",
         qr_expiration_seconds: 60,
         semestres_permitidos: [],
+        imagem_url: "",
       });
     }
     setError(null);
@@ -135,6 +141,7 @@ const LectureModal: React.FC<LectureModalProps> = ({
         carga_horaria,
         carga_horaria_minutos,
         semestres_permitidos,
+        imagem_url,
         ...formData
       } = form;
 
@@ -146,6 +153,7 @@ const LectureModal: React.FC<LectureModalProps> = ({
           semestres_permitidos.length > 0
             ? JSON.stringify(semestres_permitidos)
             : null,
+        imagem_url: imagem_url.trim() || null,
       };
 
       const payload =
@@ -485,6 +493,55 @@ const LectureModal: React.FC<LectureModalProps> = ({
                 <p className="text-xs text-emerald-600 font-medium mt-1">
                   ✓ Todos os semestres podem participar
                 </p>
+              )}
+            </div>
+
+            {/* Divisor */}
+            <div className="border-t border-slate-100" />
+
+            {/* Seção: Imagem de Capa */}
+            <div className={sectionClass}>
+              <div className="flex items-center gap-2 text-slate-600 mb-3">
+                <FileText className="w-4 h-4" />
+                <span className="text-sm font-medium">
+                  Imagem de Capa (opcional)
+                </span>
+              </div>
+
+              <div>
+                <label className={labelClass}>URL da Imagem</label>
+                <input
+                  type="url"
+                  placeholder="https://exemplo.com/imagem.jpg"
+                  value={form.imagem_url}
+                  onChange={(e) =>
+                    setForm({ ...form, imagem_url: e.target.value })
+                  }
+                  className={inputClass}
+                />
+                <p className="text-xs text-slate-400 mt-1">
+                  Cole a URL de uma imagem para exibir como capa no card.
+                </p>
+              </div>
+
+              {form.imagem_url && (
+                <div className="mt-2 rounded-xl overflow-hidden border border-slate-200 relative">
+                  <img
+                    src={form.imagem_url}
+                    alt="Preview"
+                    className="w-full h-32 object-cover"
+                    onError={(e) => {
+                      (e.target as HTMLImageElement).style.display = "none";
+                    }}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setForm({ ...form, imagem_url: "" })}
+                    className="absolute top-2 right-2 bg-white/90 p-1 rounded-full text-slate-500 hover:text-red-500"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                </div>
               )}
             </div>
 

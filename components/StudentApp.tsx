@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, lazy, Suspense } from "react";
 import { User } from "../types";
 import { isSupabaseConfigured } from "../supabaseClient";
 import {
@@ -15,13 +15,12 @@ import {
   Aviso,
   Notificacao,
 } from "../services/api";
-import { motion, AnimatePresence } from "framer-motion";
 
-// Components
-import StudentHome from "./student/StudentHome";
-import StudentCalendar from "./student/StudentCalendar";
-import StudentScanner from "./student/StudentScanner";
-import StudentProfile from "./student/StudentProfile";
+// Lazy-loaded components for better initial load
+const StudentHome = lazy(() => import("./student/StudentHome"));
+const StudentCalendar = lazy(() => import("./student/StudentCalendar"));
+const StudentScanner = lazy(() => import("./student/StudentScanner"));
+const StudentProfile = lazy(() => import("./student/StudentProfile"));
 import StudentNav from "./student/StudentNav";
 import NotificationModal from "./student/NotificationModal";
 import LectureDetailsModal from "./student/LectureDetailsModal";
@@ -272,16 +271,15 @@ const StudentApp: React.FC<StudentAppProps> = ({ user, onLogout }) => {
 
       {/* Main Content Area */}
       <main className="flex-1 overflow-y-auto no-scrollbar relative w-full">
-        <AnimatePresence mode="wait" initial={false}>
+        <Suspense
+          fallback={
+            <div className="flex items-center justify-center min-h-[60vh]">
+              <div className="w-8 h-8 border-3 border-slate-200 border-t-slate-700 rounded-full animate-spin" />
+            </div>
+          }
+        >
           {activeTab === "home" && (
-            <motion.div
-              key="home"
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: 20 }}
-              transition={{ duration: 0.2 }}
-              className="min-h-full"
-            >
+            <div className="min-h-full">
               <StudentHome
                 user={currentUser}
                 loading={loading}
@@ -309,18 +307,11 @@ const StudentApp: React.FC<StudentAppProps> = ({ user, onLogout }) => {
                   handleDownloadComprovantePresenca
                 }
               />
-            </motion.div>
+            </div>
           )}
 
           {activeTab === "calendar" && (
-            <motion.div
-              key="calendar"
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: 20 }}
-              transition={{ duration: 0.2 }}
-              className="min-h-full"
-            >
+            <div className="min-h-full">
               <StudentCalendar
                 eventos={eventos}
                 palestras={palestrasEvento}
@@ -330,34 +321,20 @@ const StudentApp: React.FC<StudentAppProps> = ({ user, onLogout }) => {
                 onInscreverPalestra={handleInscreverPalestra}
                 loading={loading}
               />
-            </motion.div>
+            </div>
           )}
 
           {activeTab === "scan" && (
-            <motion.div
-              key="scan"
-              initial={{ opacity: 0, clipPath: "circle(0% at 50% 100%)" }}
-              animate={{ opacity: 1, clipPath: "circle(150% at 50% 100%)" }}
-              exit={{ opacity: 0, clipPath: "circle(0% at 50% 100%)" }}
-              transition={{ duration: 0.4, ease: "circOut" }}
-              className="h-full bg-black z-50 absolute inset-0 sm:rounded-xl"
-            >
+            <div className="h-full bg-black z-50 absolute inset-0 sm:rounded-xl">
               <StudentScanner
                 onScan={handleQrCodeScan}
                 onClose={() => setActiveTab("home")}
               />
-            </motion.div>
+            </div>
           )}
 
           {activeTab === "profile" && (
-            <motion.div
-              key="profile"
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -20 }}
-              transition={{ duration: 0.2 }}
-              className="min-h-full"
-            >
+            <div className="min-h-full">
               <StudentProfile
                 user={currentUser}
                 minhasInscricoes={minhasInscricoes}
@@ -367,9 +344,9 @@ const StudentApp: React.FC<StudentAppProps> = ({ user, onLogout }) => {
                   showStatus("success", "Perfil atualizado com sucesso!");
                 }}
               />
-            </motion.div>
+            </div>
           )}
-        </AnimatePresence>
+        </Suspense>
       </main>
 
       {/* Navigation */}
