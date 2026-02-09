@@ -119,7 +119,7 @@ const NotificationModal: React.FC<NotificationModalProps> = ({
                           {notif.titulo}
                         </p>
                         <p
-                          className={`text-xs leading-relaxed ${notif.lida ? "text-slate-500" : "text-slate-600"}`}
+                          className={`text-xs leading-relaxed whitespace-pre-line ${notif.lida ? "text-slate-500" : "text-slate-600"}`}
                         >
                           {notif.mensagem}
                         </p>

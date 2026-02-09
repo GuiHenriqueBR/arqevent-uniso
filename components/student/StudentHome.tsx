@@ -423,7 +423,7 @@ const StudentHome: React.FC<StudentHomeProps> = ({
                         {aviso.titulo}
                       </h4>
                       <p
-                        className={`text-sm mt-1 ${styles.text} opacity-90 leading-relaxed`}
+                        className={`text-sm mt-1 ${styles.text} opacity-90 leading-relaxed whitespace-pre-line`}
                       >
                         {aviso.mensagem}
                       </p>
