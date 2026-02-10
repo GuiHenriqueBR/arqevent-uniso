@@ -952,12 +952,7 @@ const StudentHome: React.FC<StudentHomeProps> = ({
                         {/* Actions Footer */}
                         {(!isPast || presente) && (
                           <div className="bg-slate-50/50 px-4 sm:px-5 py-3 flex justify-between items-center border-t border-slate-100">
-                            {!eventoSelecionado ||
-                            !isInscritoEvento(eventoSelecionado.id) ? (
-                              <span className="text-xs text-slate-400 italic">
-                                Inscreva-se no evento para participar
-                              </span>
-                            ) : !inscrito ? (
+                            {!inscrito ? (
                               <div className="flex gap-3 w-full justify-end">
                                 <button
                                   onClick={() => onViewDetails(palestra)}

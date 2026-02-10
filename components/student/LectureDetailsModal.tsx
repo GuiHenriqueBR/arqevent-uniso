@@ -224,19 +224,7 @@ const LectureDetailsModal: React.FC<LectureDetailsModalProps> = ({
 
         {/* Footer com ações */}
         <div className="p-4 sm:p-6 border-t border-slate-100 bg-slate-50 flex items-center justify-between gap-3">
-          {!isInscrito && !isInscritoEvento ? (
-            <>
-              <p className="text-xs text-slate-400 italic">
-                Inscreva-se no evento para participar
-              </p>
-              <button
-                onClick={onClose}
-                className="px-4 py-2 bg-slate-200 text-slate-600 hover:bg-slate-300 rounded-lg font-medium transition-colors text-sm"
-              >
-                Fechar
-              </button>
-            </>
-          ) : !isInscrito ? (
+          {!isInscrito ? (
             <>
               <button
                 onClick={onClose}
