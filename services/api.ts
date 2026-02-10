@@ -90,7 +90,6 @@ export interface Palestra {
   palestrante_id?: string;
   palestrante_nome?: string;
   qr_code_hash?: string;
-  qr_expiration_seconds?: number;
   semestres_permitidos?: string | null;
   imagem_url?: string | null;
   created_at: string;
@@ -381,7 +380,6 @@ export const palestrasApi = {
       imagem_url: palestra.imagem_url || null,
       evento_id: eventoId,
       qr_code_hash,
-      qr_expiration_seconds: palestra.qr_expiration_seconds || 60,
     };
     console.log("[API] Dados para inserção:", insertData);
 
@@ -460,29 +458,12 @@ export const palestrasApi = {
       palestra_id: data.id,
       evento_id: data.evento_id,
       hash: data.qr_code_hash,
-      valid_from: data.data_hora_inicio,
-      valid_until: data.data_hora_fim,
     };
 
     return {
       palestra_titulo: data.titulo,
       qr_data: JSON.stringify(qrData),
-      valid_from: data.data_hora_inicio,
-      valid_until: data.data_hora_fim,
     };
-  },
-
-  regenerateQrCode: async (id: string) => {
-    const newHash = generateQrHash();
-
-    const { error } = await supabase
-      .from("palestras")
-      .update({ qr_code_hash: newHash })
-      .eq("id", id);
-
-    if (error) throw new Error(`Erro ao regenerar QR Code: ${error.message}`);
-
-    return palestrasApi.getQrCode(id);
   },
 
   getInscritos: async (palestraId: string) => {
@@ -1708,15 +1689,19 @@ export const usuariosApi = {
   },
 
   deleteAluno: async (alunoId: string) => {
-    const { data, error } = await supabase.rpc('excluir_aluno', {
+    const { data, error } = await supabase.rpc("excluir_aluno", {
       p_aluno_id: alunoId,
     });
 
     if (error) throw new Error(error.message);
 
-    const resultado = data as { success: boolean; error?: string; message?: string };
+    const resultado = data as {
+      success: boolean;
+      error?: string;
+      message?: string;
+    };
     if (!resultado.success) {
-      throw new Error(resultado.error || 'Erro ao excluir aluno');
+      throw new Error(resultado.error || "Erro ao excluir aluno");
     }
 
     return resultado;

@@ -56,7 +56,6 @@ const LectureModal: React.FC<LectureModalProps> = ({
     carga_unidade: "horas" as "minutos" | "horas",
     palestrante_id: "",
     palestrante_nome: "",
-    qr_expiration_seconds: 60,
     semestres_permitidos: [] as number[],
     imagem_url: "",
   });
@@ -88,7 +87,6 @@ const LectureModal: React.FC<LectureModalProps> = ({
         carga_unidade: ehHoras ? "horas" : "minutos",
         palestrante_id: initialData.palestrante_id || "",
         palestrante_nome: initialData.palestrante_nome || "",
-        qr_expiration_seconds: (initialData as any).qr_expiration_seconds || 60,
         semestres_permitidos: (initialData as any).semestres_permitidos
           ? JSON.parse((initialData as any).semestres_permitidos)
           : [],
@@ -109,7 +107,6 @@ const LectureModal: React.FC<LectureModalProps> = ({
         carga_unidade: "horas",
         palestrante_id: "",
         palestrante_nome: "",
-        qr_expiration_seconds: 60,
         semestres_permitidos: [],
         imagem_url: "",
       });
@@ -515,76 +512,45 @@ const LectureModal: React.FC<LectureModalProps> = ({
             {/* Divisor */}
             <div className="border-t border-slate-100" />
 
-            {/* Seção: Carga Horária e QR Code */}
+            {/* Seção: Carga Horária */}
             <div className={sectionClass}>
               <div className="flex items-center gap-2 text-slate-600 mb-3">
                 <Timer className="w-4 h-4" />
                 <span className="text-sm font-medium">
-                  Carga Horária e Configurações
+                  Carga Horária
                 </span>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div>
-                  <label className={labelClass}>Carga Horária</label>
-                  <div className="flex gap-2">
-                    <input
-                      type="number"
-                      min="1"
-                      value={form.carga_horaria}
-                      onChange={(e) =>
-                        setForm({
-                          ...form,
-                          carga_horaria: parseInt(e.target.value) || 1,
-                        })
-                      }
-                      className={`${inputClass} flex-1`}
-                    />
-                    <select
-                      value={form.carga_unidade}
-                      onChange={(e) =>
-                        setForm({
-                          ...form,
-                          carga_unidade: e.target.value as "minutos" | "horas",
-                        })
-                      }
-                      className="w-28 px-3 py-3 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white text-sm font-medium"
-                    >
-                      <option value="minutos">minutos</option>
-                      <option value="horas">horas</option>
-                    </select>
-                  </div>
-                </div>
-
-                <div>
-                  <label className={labelClass}>Timer do QR Code</label>
-                  <select
-                    value={form.qr_expiration_seconds}
+              <div>
+                <label className={labelClass}>Carga Horária</label>
+                <div className="flex gap-2">
+                  <input
+                    type="number"
+                    min="1"
+                    value={form.carga_horaria}
                     onChange={(e) =>
                       setForm({
                         ...form,
-                        qr_expiration_seconds: parseInt(e.target.value),
+                        carga_horaria: parseInt(e.target.value) || 1,
                       })
                     }
-                    className={inputClass}
+                    className={`${inputClass} flex-1`}
+                  />
+                  <select
+                    value={form.carga_unidade}
+                    onChange={(e) =>
+                      setForm({
+                        ...form,
+                        carga_unidade: e.target.value as "minutos" | "horas",
+                      })
+                    }
+                    className="w-28 px-3 py-3 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white text-sm font-medium"
                   >
-                    <option value={15}>15s - Máxima segurança</option>
-                    <option value={30}>30s - Alta segurança</option>
-                    <option value={45}>45s</option>
-                    <option value={60}>1 min - Recomendado</option>
-                    <option value={90}>1min 30s</option>
-                    <option value={120}>2 min</option>
-                    <option value={180}>3 min</option>
-                    <option value={300}>5 min</option>
-                    <option value={600}>10 min - Baixa segurança</option>
+                    <option value="minutos">minutos</option>
+                    <option value="horas">horas</option>
                   </select>
                 </div>
               </div>
-
-              <p className="text-xs text-slate-500 bg-slate-50 p-3 rounded-lg">
-                💡 O timer define o intervalo de regeneração do QR Code durante
-                a apresentação. Timers mais curtos são mais seguros.
-              </p>
             </div>
 
             {/* Erro */}

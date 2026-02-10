@@ -76,7 +76,7 @@ const StudentsView: React.FC<StudentsViewProps> = ({
       setDeleteConfirmId(null);
       onRefresh?.();
     } catch (err: any) {
-      alert(err.message || 'Erro ao excluir aluno');
+      alert(err.message || "Erro ao excluir aluno");
     } finally {
       setDeletingStudent(false);
     }
@@ -600,8 +600,8 @@ const StudentsView: React.FC<StudentsViewProps> = ({
                 disabled={deletingStudent}
                 className={`flex items-center justify-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors shadow-sm ${
                   deleteConfirmId === selectedStudent.id
-                    ? 'bg-red-600 text-white hover:bg-red-700'
-                    : 'border border-red-200 bg-white text-red-600 hover:bg-red-50'
+                    ? "bg-red-600 text-white hover:bg-red-700"
+                    : "border border-red-200 bg-white text-red-600 hover:bg-red-50"
                 }`}
               >
                 {deletingStudent ? (
@@ -610,8 +610,8 @@ const StudentsView: React.FC<StudentsViewProps> = ({
                   <Trash2 className="w-4 h-4" />
                 )}
                 {deleteConfirmId === selectedStudent.id
-                  ? 'Confirmar Exclusão'
-                  : 'Excluir Aluno'}
+                  ? "Confirmar Exclusão"
+                  : "Excluir Aluno"}
               </button>
               <div className="flex gap-3">
                 <button

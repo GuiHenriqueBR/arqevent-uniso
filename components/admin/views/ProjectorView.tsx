@@ -1,10 +1,7 @@
-import React, { useState, useEffect, useCallback, useRef } from "react";
-import { X, Clock, MapPin, Award, RefreshCw } from "lucide-react";
+import React, { useState, useEffect, useCallback } from "react";
+import { X, Clock, MapPin, Award } from "lucide-react";
 import { QRCodeSVG } from "qrcode.react";
 import { palestrasApi } from "../../../services/api";
-
-// Tempo padrão de expiração do QR Code em segundos (1 minuto)
-const DEFAULT_QR_EXPIRATION_SECONDS = 60;
 
 // Tipo estendido para suportar os campos necessários do projetor
 interface ProjectorLecture {
@@ -17,7 +14,6 @@ interface ProjectorLecture {
   palestrante_nome?: string;
   carga_horaria?: number;
   qr_code_hash?: string;
-  qr_expiration_seconds?: number;
 }
 
 interface ProjectorViewProps {
@@ -29,16 +25,8 @@ const ProjectorView: React.FC<ProjectorViewProps> = ({ lecture, onClose }) => {
   const [timeRemaining, setTimeRemaining] = useState<string>("");
   const [qrData, setQrData] = useState<string>("");
   const [qrError, setQrError] = useState<string | null>(null);
-  const [qrCountdown, setQrCountdown] = useState<number>(
-    lecture.qr_expiration_seconds || DEFAULT_QR_EXPIRATION_SECONDS,
-  );
-  const [isRegenerating, setIsRegenerating] = useState(false);
-  const isRegeneratingRef = useRef(false);
 
-  const expirationSeconds =
-    lecture.qr_expiration_seconds || DEFAULT_QR_EXPIRATION_SECONDS;
-
-  // Função para carregar o QR Code
+  // Função para carregar o QR Code (carrega UMA vez, QR é fixo)
   const loadQrCode = useCallback(async () => {
     try {
       setQrError(null);
@@ -57,46 +45,10 @@ const ProjectorView: React.FC<ProjectorViewProps> = ({ lecture, onClose }) => {
     }
   }, [lecture.id, lecture.titulo, lecture.qr_code_hash]);
 
-  // Função para regenerar o QR Code
-  const regenerateQrCode = useCallback(async () => {
-    if (isRegeneratingRef.current) return;
-    isRegeneratingRef.current = true;
-    setIsRegenerating(true);
-    try {
-      const qrInfo = await palestrasApi.regenerateQrCode(lecture.id);
-      setQrData(qrInfo.qr_data);
-      setQrCountdown(expirationSeconds);
-      setQrError(null);
-    } catch (err: any) {
-      setQrError("Erro ao regenerar QR Code");
-      console.error("Erro regenerando QR:", err);
-    } finally {
-      isRegeneratingRef.current = false;
-      setIsRegenerating(false);
-    }
-  }, [lecture.id, expirationSeconds]);
-
-  // Carrega o QR Code inicial
+  // Carrega o QR Code uma única vez
   useEffect(() => {
     loadQrCode();
   }, [loadQrCode]);
-
-  // Timer de countdown e regeneração automática
-  useEffect(() => {
-    const intervalId = setInterval(() => {
-      setQrCountdown((prev) => {
-        if (prev <= 1) {
-          regenerateQrCode();
-          return expirationSeconds;
-        }
-        return prev - 1;
-      });
-    }, 1000);
-
-    return () => {
-      clearInterval(intervalId);
-    };
-  }, [regenerateQrCode, expirationSeconds]);
 
   useEffect(() => {
     const updateTime = () => {
@@ -223,38 +175,30 @@ const ProjectorView: React.FC<ProjectorViewProps> = ({ lecture, onClose }) => {
               </span>
             </div>
           </div>
-          <div
-            className={`backdrop-blur-md p-5 rounded-2xl flex items-center justify-center gap-4 border transition-colors ${
-              qrCountdown <= 10
-                ? "bg-orange-500/10 border-orange-500/30"
-                : "bg-white/5 border-white/10 hover:bg-white/10"
-            }`}
-          >
-            <div
-              className={`p-3 rounded-xl ${qrCountdown <= 10 ? "bg-orange-500/20" : "bg-purple-500/20"}`}
-            >
-              <RefreshCw
-                className={`w-6 h-6 ${qrCountdown <= 10 ? "text-orange-400" : "text-purple-400"} ${isRegenerating ? "animate-spin" : ""}`}
-              />
+          <div className="bg-white/5 backdrop-blur-md p-5 rounded-2xl flex items-center justify-center gap-4 border border-white/10 hover:bg-white/10 transition-colors">
+            <div className="bg-purple-500/20 p-3 rounded-xl">
+              <Clock className="w-6 h-6 text-purple-400" />
             </div>
             <div className="text-left">
-              <p className="text-sm text-white/50 font-medium">Novo QR em</p>
-              <span
-                className={`text-xl font-bold font-mono tracking-wide ${qrCountdown <= 10 ? "text-orange-400" : ""}`}
-              >
-                {isRegenerating ? "..." : `${qrCountdown}s`}
+              <p className="text-sm text-white/50 font-medium">Horário</p>
+              <span className="text-lg font-bold">
+                {new Date(lecture.data_hora_inicio).toLocaleTimeString(
+                  "pt-BR",
+                  { hour: "2-digit", minute: "2-digit" },
+                )}
+                {" - "}
+                {new Date(lecture.data_hora_fim).toLocaleTimeString("pt-BR", {
+                  hour: "2-digit",
+                  minute: "2-digit",
+                })}
               </span>
             </div>
           </div>
         </div>
 
         <div className="flex items-center gap-2 text-indigo-200/60 text-sm">
-          <RefreshCw
-            className={`w-4 h-4 ${isRegenerating ? "animate-spin" : ""}`}
-          />
           <span>
-            QR Code atualiza automaticamente a cada {expirationSeconds}s para
-            maior segurança
+            QR Code fixo desta palestra — válido durante o horário da atividade
           </span>
         </div>
       </div>

@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState, useCallback } from "react";
-import { Html5Qrcode } from "html5-qrcode";
+import { Html5Qrcode, Html5QrcodeSupportedFormats } from "html5-qrcode";
 import {
   QrCode,
   Camera,
@@ -113,6 +113,11 @@ const StudentScanner: React.FC<StudentScannerProps> = ({
       }
 
       const qrCodeSuccessCallback = async (decodedText: string) => {
+        // Feedback háptico ao detectar QR
+        if (navigator.vibrate) {
+          navigator.vibrate(200);
+        }
+
         setIsActive(false);
         await stopCamera();
 
@@ -133,9 +138,14 @@ const StudentScanner: React.FC<StudentScannerProps> = ({
       };
 
       const config = {
-        fps: 10,
-        qrbox: { width: 250, height: 250 },
+        fps: 15,
+        qrbox: { width: 280, height: 280 },
         aspectRatio: 1.0,
+        formatsToSupport: [Html5QrcodeSupportedFormats.QR_CODE],
+        disableFlip: true,
+        experimentalFeatures: {
+          useBarCodeDetectorIfSupported: true,
+        },
       };
 
       await html5QrCodeRef.current.start(

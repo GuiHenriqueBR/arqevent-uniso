@@ -44,30 +44,29 @@ const StudentApp: React.FC<StudentAppProps> = ({ user, onLogout }) => {
     title?: string;
   }>({ isOpen: false, type: "success", message: "" });
 
-  const showStatus = (
-    type: "success" | "error",
-    message: string,
-    title?: string,
-  ) => {
-    setStatusModal({
-      isOpen: true,
-      type,
-      message,
-      title: title || (type === "success" ? "Sucesso!" : "Ops!"),
-    });
-    // Auto hide after 3s if success
-    if (type === "success") {
-      setTimeout(
-        () => setStatusModal((prev) => ({ ...prev, isOpen: false })),
-        3000,
-      );
-    } else {
-      setTimeout(
-        () => setStatusModal((prev) => ({ ...prev, isOpen: false })),
-        4000,
-      );
-    }
-  };
+  const showStatus = useCallback(
+    (type: "success" | "error", message: string, title?: string) => {
+      setStatusModal({
+        isOpen: true,
+        type,
+        message,
+        title: title || (type === "success" ? "Sucesso!" : "Ops!"),
+      });
+      // Auto hide after 3s if success
+      if (type === "success") {
+        setTimeout(
+          () => setStatusModal((prev) => ({ ...prev, isOpen: false })),
+          3000,
+        );
+      } else {
+        setTimeout(
+          () => setStatusModal((prev) => ({ ...prev, isOpen: false })),
+          4000,
+        );
+      }
+    },
+    [],
+  );
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);

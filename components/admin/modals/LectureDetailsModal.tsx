@@ -1,14 +1,6 @@
-import React, { useState } from "react";
-import {
-  X,
-  Clock,
-  MapPin,
-  User,
-  CalendarDays,
-  Users,
-  RefreshCw,
-} from "lucide-react";
-import { Palestra, Evento, palestrasApi } from "../../../services/api";
+import React from "react";
+import { X, Clock, MapPin, User, CalendarDays, Users } from "lucide-react";
+import { Palestra, Evento } from "../../../services/api";
 
 interface LectureDetailsModalProps {
   isOpen: boolean;
@@ -24,9 +16,6 @@ const LectureDetailsModal: React.FC<LectureDetailsModalProps> = ({
   eventos,
 }) => {
   if (!isOpen || !palestra) return null;
-
-  const [regenerating, setRegenerating] = useState(false);
-  const [regenMsg, setRegenMsg] = useState<string | null>(null);
 
   const eventoTitulo =
     eventos.find((e) => e.id === palestra.evento_id)?.titulo || "—";
@@ -52,43 +41,6 @@ const LectureDetailsModal: React.FC<LectureDetailsModalProps> = ({
         </div>
 
         <div className="p-4 sm:p-6 space-y-4 overflow-y-auto">
-          <div className="flex items-center justify-between bg-slate-50 border border-slate-100 rounded-lg p-3">
-            <div>
-              <p className="text-xs text-slate-500">QR Code da palestra</p>
-              <p className="text-sm text-slate-700">
-                Este QR é estático. Use "Gerar novo" para invalidar o atual.
-              </p>
-            </div>
-            <button
-              onClick={async () => {
-                if (
-                  !window.confirm(
-                    "Gerar um novo QR Code para esta palestra? O anterior será invalidado.",
-                  )
-                ) {
-                  return;
-                }
-                setRegenerating(true);
-                setRegenMsg(null);
-                try {
-                  await palestrasApi.regenerateQrCode(palestra.id);
-                  setRegenMsg("Novo QR Code gerado com sucesso!");
-                } catch (err: any) {
-                  setRegenMsg(err.message || "Erro ao gerar novo QR Code");
-                } finally {
-                  setRegenerating(false);
-                }
-              }}
-              className="px-3 py-2 text-sm bg-white border border-slate-200 rounded-lg hover:bg-slate-50 flex items-center gap-2"
-              disabled={regenerating}
-            >
-              <RefreshCw
-                className={`w-4 h-4 ${regenerating ? "animate-spin" : ""}`}
-              />
-              {regenerating ? "Gerando..." : "Gerar novo"}
-            </button>
-          </div>
-          {regenMsg && <div className="text-xs text-slate-600">{regenMsg}</div>}
           {palestra.descricao && (
             <div>
               <p className="text-sm text-slate-500 mb-1">Descrição</p>
