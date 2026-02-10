@@ -232,7 +232,8 @@ const EventModal: React.FC<EventModalProps> = ({
                 )}
               </div>
               <p className="text-[11px] text-slate-400">
-                Imagens são comprimidas automaticamente. A primeira da galeria é usada como capa se não houver banner principal.
+                Imagens são comprimidas automaticamente. A primeira da galeria é
+                usada como capa se não houver banner principal.
               </p>
             </div>
           </div>

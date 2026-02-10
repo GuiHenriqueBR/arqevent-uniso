@@ -9,7 +9,11 @@ import {
 import { supabase } from "../../../supabaseClient";
 
 // --- Image compression utility ---
-const compressImage = (file: File, maxWidth = 1200, quality = 0.8): Promise<File> => {
+const compressImage = (
+  file: File,
+  maxWidth = 1200,
+  quality = 0.8,
+): Promise<File> => {
   return new Promise((resolve, reject) => {
     // Skip GIFs (can't compress without losing animation)
     if (file.type === "image/gif") {
@@ -60,15 +64,15 @@ const compressImage = (file: File, maxWidth = 1200, quality = 0.8): Promise<File
           const compressedFile = new File(
             [blob],
             file.name.replace(/\.[^.]+$/, ".webp"),
-            { type: "image/webp" }
+            { type: "image/webp" },
           );
           console.log(
-            `[ImageUpload] Comprimido: ${(file.size / 1024).toFixed(0)}KB → ${(compressedFile.size / 1024).toFixed(0)}KB`
+            `[ImageUpload] Comprimido: ${(file.size / 1024).toFixed(0)}KB → ${(compressedFile.size / 1024).toFixed(0)}KB`,
           );
           resolve(compressedFile);
         },
         "image/webp",
-        quality
+        quality,
       );
     };
 
@@ -257,7 +261,9 @@ const ImageUpload: React.FC<ImageUploadProps> = ({
 
           {uploading ? (
             <div className="flex flex-col items-center gap-2">
-              <Loader2 className={`${compact ? "w-5 h-5" : "w-8 h-8"} text-indigo-500 animate-spin`} />
+              <Loader2
+                className={`${compact ? "w-5 h-5" : "w-8 h-8"} text-indigo-500 animate-spin`}
+              />
               <p className="text-sm text-slate-500 font-medium">
                 Comprimindo e enviando...
               </p>
@@ -270,10 +276,16 @@ const ImageUpload: React.FC<ImageUploadProps> = ({
                 </div>
               )}
               <div>
-                <p className={`${compact ? "text-xs" : "text-sm"} font-medium text-slate-700`}>
-                  {compact ? "Clique ou arraste" : "Clique para escolher ou arraste aqui"}
+                <p
+                  className={`${compact ? "text-xs" : "text-sm"} font-medium text-slate-700`}
+                >
+                  {compact
+                    ? "Clique ou arraste"
+                    : "Clique para escolher ou arraste aqui"}
                 </p>
-                {!compact && <p className="text-xs text-slate-400 mt-0.5">{hint}</p>}
+                {!compact && (
+                  <p className="text-xs text-slate-400 mt-0.5">{hint}</p>
+                )}
               </div>
             </div>
           )}

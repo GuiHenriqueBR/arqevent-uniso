@@ -208,8 +208,8 @@ BEGIN
   JOIN palestras p ON p.id = ip.palestra_id
   WHERE ip.usuario_id = p_usuario_id
     AND ip.status_fila IN ('CONFIRMADO', 'LISTA_ESPERA')
-    AND v_palestra.data_hora_inicio < p.data_hora_fim
-    AND v_palestra.data_hora_fim > p.data_hora_inicio
+    AND (v_palestra.data_hora_inicio + INTERVAL '1 minute') < p.data_hora_fim
+    AND (v_palestra.data_hora_fim - INTERVAL '1 minute') > p.data_hora_inicio
   LIMIT 1;
 
   IF v_conflito_palestra IS NOT NULL THEN
