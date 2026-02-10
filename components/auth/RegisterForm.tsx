@@ -109,7 +109,7 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onLoginClick }) => {
 
       setMessage({
         type: "success",
-        text: "Cadastro realizado com sucesso! Verifique seu e-mail para confirmar.",
+        text: "Cadastro realizado com sucesso! Redirecionando...",
       });
     } catch (error: any) {
       let errorText = error.message;
