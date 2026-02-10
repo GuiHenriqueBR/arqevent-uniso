@@ -516,9 +516,7 @@ const LectureModal: React.FC<LectureModalProps> = ({
             <div className={sectionClass}>
               <div className="flex items-center gap-2 text-slate-600 mb-3">
                 <Timer className="w-4 h-4" />
-                <span className="text-sm font-medium">
-                  Carga Horária
-                </span>
+                <span className="text-sm font-medium">Carga Horária</span>
               </div>
 
               <div>
