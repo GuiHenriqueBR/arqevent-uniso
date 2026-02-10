@@ -109,10 +109,21 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onLoginClick }) => {
 
       setMessage({
         type: "success",
-        text: "Cadastro realizado. Verifique seu e-mail para confirmar.",
+        text: "Cadastro realizado com sucesso! Verifique seu e-mail para confirmar.",
       });
     } catch (error: any) {
-      setMessage({ type: "error", text: error.message });
+      let errorText = error.message;
+      if (
+        error.message?.toLowerCase().includes("rate limit") ||
+        error.message?.toLowerCase().includes("email rate")
+      ) {
+        errorText =
+          "Muitos cadastros simultâneos. Aguarde alguns minutos e tente novamente.";
+      } else if (error.message?.toLowerCase().includes("already registered")) {
+        errorText =
+          "Este e-mail já está cadastrado. Tente fazer login ou recuperar a senha.";
+      }
+      setMessage({ type: "error", text: errorText });
     } finally {
       setLoading(false);
     }
