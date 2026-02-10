@@ -12,6 +12,7 @@ import {
   Clock,
   Loader2,
   Edit,
+  Trash2,
 } from "lucide-react";
 import { usuariosApi } from "../../../services/api";
 import UserEditModal from "../modals/UserEditModal";
@@ -39,6 +40,8 @@ const StudentsView: React.FC<StudentsViewProps> = ({
     palestras: any[];
   } | null>(null);
   const [loadingInscricoes, setLoadingInscricoes] = useState(false);
+  const [deletingStudent, setDeletingStudent] = useState(false);
+  const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
 
   // Carregar inscrições quando um aluno for selecionado
   useEffect(() => {
@@ -60,6 +63,24 @@ const StudentsView: React.FC<StudentsViewProps> = ({
       setInscricoes(null);
     }
   }, [selectedStudent]);
+
+  const handleDeleteStudent = async (student: any) => {
+    if (deleteConfirmId !== student.id) {
+      setDeleteConfirmId(student.id);
+      return;
+    }
+    setDeletingStudent(true);
+    try {
+      await usuariosApi.deleteAluno(student.id);
+      setSelectedStudent(null);
+      setDeleteConfirmId(null);
+      onRefresh?.();
+    } catch (err: any) {
+      alert(err.message || 'Erro ao excluir aluno');
+    } finally {
+      setDeletingStudent(false);
+    }
+  };
 
   const handleSendEmail = (student: any) => {
     if (!student?.email) return;
@@ -573,22 +594,42 @@ const StudentsView: React.FC<StudentsViewProps> = ({
               )}
             </div>
 
-            <div className="p-4 border-t border-slate-100 bg-white flex flex-col sm:flex-row justify-end gap-3 shrink-0">
+            <div className="p-4 border-t border-slate-100 bg-white flex flex-col sm:flex-row justify-between gap-3 shrink-0">
               <button
-                onClick={() => {
-                  setEditingStudent(selectedStudent);
-                }}
-                className="flex items-center justify-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm font-medium hover:bg-indigo-700 transition-colors shadow-sm"
+                onClick={() => handleDeleteStudent(selectedStudent)}
+                disabled={deletingStudent}
+                className={`flex items-center justify-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors shadow-sm ${
+                  deleteConfirmId === selectedStudent.id
+                    ? 'bg-red-600 text-white hover:bg-red-700'
+                    : 'border border-red-200 bg-white text-red-600 hover:bg-red-50'
+                }`}
               >
-                <Edit className="w-4 h-4" /> Editar Usuário
+                {deletingStudent ? (
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                ) : (
+                  <Trash2 className="w-4 h-4" />
+                )}
+                {deleteConfirmId === selectedStudent.id
+                  ? 'Confirmar Exclusão'
+                  : 'Excluir Aluno'}
               </button>
-              <button
-                onClick={() => handleSendEmail(selectedStudent)}
-                disabled={!selectedStudent?.email}
-                className="flex items-center justify-center gap-2 px-4 py-2 border border-slate-200 bg-white rounded-lg text-slate-600 text-sm font-medium hover:bg-slate-50 hover:text-slate-900 transition-colors shadow-sm disabled:opacity-50"
-              >
-                <Mail className="w-4 h-4" /> Enviar Email
-              </button>
+              <div className="flex gap-3">
+                <button
+                  onClick={() => {
+                    setEditingStudent(selectedStudent);
+                  }}
+                  className="flex items-center justify-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm font-medium hover:bg-indigo-700 transition-colors shadow-sm"
+                >
+                  <Edit className="w-4 h-4" /> Editar Usuário
+                </button>
+                <button
+                  onClick={() => handleSendEmail(selectedStudent)}
+                  disabled={!selectedStudent?.email}
+                  className="flex items-center justify-center gap-2 px-4 py-2 border border-slate-200 bg-white rounded-lg text-slate-600 text-sm font-medium hover:bg-slate-50 hover:text-slate-900 transition-colors shadow-sm disabled:opacity-50"
+                >
+                  <Mail className="w-4 h-4" /> Enviar Email
+                </button>
+              </div>
             </div>
           </div>
         </div>

@@ -1706,6 +1706,21 @@ export const usuariosApi = {
       palestras: inscricoesPalestra || [],
     };
   },
+
+  deleteAluno: async (alunoId: string) => {
+    const { data, error } = await supabase.rpc('excluir_aluno', {
+      p_aluno_id: alunoId,
+    });
+
+    if (error) throw new Error(error.message);
+
+    const resultado = data as { success: boolean; error?: string; message?: string };
+    if (!resultado.success) {
+      throw new Error(resultado.error || 'Erro ao excluir aluno');
+    }
+
+    return resultado;
+  },
 };
 
 // =====================
