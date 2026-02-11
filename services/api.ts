@@ -1845,6 +1845,28 @@ export const usuariosApi = {
     };
   },
 
+  // Admin: remover inscrição de palestra de um aluno
+  removerInscricaoPalestra: async (inscricaoId: string) => {
+    const { error } = await supabase
+      .from("inscricoes_palestra")
+      .delete()
+      .eq("id", inscricaoId);
+
+    if (error) throw new Error(error.message);
+    return { success: true };
+  },
+
+  // Admin: remover inscrição de evento de um aluno
+  removerInscricaoEvento: async (inscricaoId: string) => {
+    const { error } = await supabase
+      .from("inscricoes_evento")
+      .delete()
+      .eq("id", inscricaoId);
+
+    if (error) throw new Error(error.message);
+    return { success: true };
+  },
+
   deleteAluno: async (alunoId: string) => {
     const { data, error } = await supabase.rpc("excluir_aluno", {
       p_aluno_id: alunoId,

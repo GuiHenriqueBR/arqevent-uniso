@@ -11,7 +11,11 @@ import {
   ChevronRight,
   GraduationCap,
 } from "lucide-react";
-import { Palestra, formatCargaHoraria, parseSemestresPermitidos } from "../../services/api";
+import {
+  Palestra,
+  formatCargaHoraria,
+  parseSemestresPermitidos,
+} from "../../services/api";
 
 interface LectureDetailsModalProps {
   isOpen: boolean;

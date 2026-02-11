@@ -1,6 +1,12 @@
 import React from "react";
 import { User } from "../../types";
-import { Evento, Palestra, Aviso, formatSemestres, parseSemestresPermitidos } from "../../services/api";
+import {
+  Evento,
+  Palestra,
+  Aviso,
+  formatSemestres,
+  parseSemestresPermitidos,
+} from "../../services/api";
 import {
   Bell,
   RefreshCw,
@@ -928,10 +934,14 @@ const StudentHome: React.FC<StudentHomeProps> = ({
                                 <MapPin className="w-3 h-3" />{" "}
                                 {palestra.sala || "TBD"}
                               </span>
-                              {parseSemestresPermitidos(palestra.semestres_permitidos) && (
+                              {parseSemestresPermitidos(
+                                palestra.semestres_permitidos,
+                              ) && (
                                 <span className="flex items-center gap-1 font-medium text-indigo-500">
                                   <GraduationCap className="w-3 h-3" />
-                                  {formatSemestres(palestra.semestres_permitidos)}
+                                  {formatSemestres(
+                                    palestra.semestres_permitidos,
+                                  )}
                                 </span>
                               )}
 

@@ -11,7 +11,12 @@ import {
   CalendarX,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Palestra, Evento, formatCargaHoraria, parseSemestresPermitidos } from "../../services/api";
+import {
+  Palestra,
+  Evento,
+  formatCargaHoraria,
+  parseSemestresPermitidos,
+} from "../../services/api";
 
 interface StudentCalendarProps {
   eventos: Evento[];

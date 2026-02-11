@@ -721,7 +721,9 @@ const EventsView: React.FC<EventsViewProps> = ({
                         <div className="flex flex-wrap gap-1 mt-2">
                           <Badge
                             variant={
-                              tipoLabel === "ATIVIDADE" ? "success" : "secondary"
+                              tipoLabel === "ATIVIDADE"
+                                ? "success"
+                                : "secondary"
                             }
                           >
                             {tipoLabel}

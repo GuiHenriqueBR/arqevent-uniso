@@ -42,6 +42,8 @@ const StudentsView: React.FC<StudentsViewProps> = ({
   const [loadingInscricoes, setLoadingInscricoes] = useState(false);
   const [deletingStudent, setDeletingStudent] = useState(false);
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
+  const [removingInscricaoId, setRemovingInscricaoId] = useState<string | null>(null);
+  const [confirmRemoveId, setConfirmRemoveId] = useState<string | null>(null);
 
   // Carregar inscrições quando um aluno for selecionado
   useEffect(() => {
@@ -79,6 +81,49 @@ const StudentsView: React.FC<StudentsViewProps> = ({
       alert(err.message || "Erro ao excluir aluno");
     } finally {
       setDeletingStudent(false);
+    }
+  };
+
+  const handleRemoverInscricaoPalestra = async (inscricaoId: string) => {
+    if (confirmRemoveId !== inscricaoId) {
+      setConfirmRemoveId(inscricaoId);
+      return;
+    }
+    setRemovingInscricaoId(inscricaoId);
+    try {
+      await usuariosApi.removerInscricaoPalestra(inscricaoId);
+      // Atualizar lista local
+      setInscricoes((prev) =>
+        prev
+          ? { ...prev, palestras: prev.palestras.filter((p: any) => p.id !== inscricaoId) }
+          : prev,
+      );
+      setConfirmRemoveId(null);
+    } catch (err: any) {
+      alert("Erro ao remover inscrição: " + err.message);
+    } finally {
+      setRemovingInscricaoId(null);
+    }
+  };
+
+  const handleRemoverInscricaoEvento = async (inscricaoId: string) => {
+    if (confirmRemoveId !== inscricaoId) {
+      setConfirmRemoveId(inscricaoId);
+      return;
+    }
+    setRemovingInscricaoId(inscricaoId);
+    try {
+      await usuariosApi.removerInscricaoEvento(inscricaoId);
+      setInscricoes((prev) =>
+        prev
+          ? { ...prev, eventos: prev.eventos.filter((e: any) => e.id !== inscricaoId) }
+          : prev,
+      );
+      setConfirmRemoveId(null);
+    } catch (err: any) {
+      alert("Erro ao remover inscrição: " + err.message);
+    } finally {
+      setRemovingInscricaoId(null);
     }
   };
 
@@ -461,21 +506,39 @@ const StudentsView: React.FC<StudentsViewProps> = ({
                             </span>
                           </div>
                         </div>
-                        <span
-                          className={`px-2 py-1 rounded-full text-xs font-medium ${
-                            insc.status === "CONFIRMADA"
-                              ? "bg-emerald-100 text-emerald-700"
+                        <div className="flex flex-col items-end gap-1.5">
+                          <span
+                            className={`px-2 py-1 rounded-full text-xs font-medium ${
+                              insc.status === "CONFIRMADA"
+                                ? "bg-emerald-100 text-emerald-700"
+                                : insc.status === "PENDENTE"
+                                  ? "bg-amber-100 text-amber-700"
+                                  : "bg-red-100 text-red-700"
+                            }`}
+                          >
+                            {insc.status === "CONFIRMADA"
+                              ? "Confirmado"
                               : insc.status === "PENDENTE"
-                                ? "bg-amber-100 text-amber-700"
-                                : "bg-red-100 text-red-700"
-                          }`}
-                        >
-                          {insc.status === "CONFIRMADA"
-                            ? "Confirmado"
-                            : insc.status === "PENDENTE"
-                              ? "Pendente"
-                              : "Cancelado"}
-                        </span>
+                                ? "Pendente"
+                                : "Cancelado"}
+                          </span>
+                          <button
+                            onClick={() => handleRemoverInscricaoEvento(insc.id)}
+                            disabled={removingInscricaoId === insc.id}
+                            className={`flex items-center gap-1 px-2 py-1 rounded-lg text-[11px] font-medium transition-colors ${
+                              confirmRemoveId === insc.id
+                                ? "bg-red-600 text-white hover:bg-red-700"
+                                : "text-red-500 hover:bg-red-50 border border-red-200"
+                            }`}
+                          >
+                            {removingInscricaoId === insc.id ? (
+                              <Loader2 className="w-3 h-3 animate-spin" />
+                            ) : (
+                              <Trash2 className="w-3 h-3" />
+                            )}
+                            {confirmRemoveId === insc.id ? "Confirmar" : "Remover"}
+                          </button>
+                        </div>
                       </div>
                     </div>
                   ))}
@@ -549,7 +612,7 @@ const StudentsView: React.FC<StudentsViewProps> = ({
                             </p>
                           )}
                         </div>
-                        <div className="flex flex-col items-end gap-1">
+                        <div className="flex flex-col items-end gap-1.5">
                           <span
                             className={`px-2 py-1 rounded-full text-xs font-medium ${
                               insc.presente ||
@@ -580,6 +643,22 @@ const StudentsView: React.FC<StudentsViewProps> = ({
                               Sem inscrição prévia
                             </span>
                           )}
+                          <button
+                            onClick={() => handleRemoverInscricaoPalestra(insc.id)}
+                            disabled={removingInscricaoId === insc.id}
+                            className={`flex items-center gap-1 px-2 py-1 rounded-lg text-[11px] font-medium transition-colors ${
+                              confirmRemoveId === insc.id
+                                ? "bg-red-600 text-white hover:bg-red-700"
+                                : "text-red-500 hover:bg-red-50 border border-red-200"
+                            }`}
+                          >
+                            {removingInscricaoId === insc.id ? (
+                              <Loader2 className="w-3 h-3 animate-spin" />
+                            ) : (
+                              <Trash2 className="w-3 h-3" />
+                            )}
+                            {confirmRemoveId === insc.id ? "Confirmar" : "Remover"}
+                          </button>
                         </div>
                       </div>
                     </div>
