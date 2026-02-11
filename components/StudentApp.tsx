@@ -168,7 +168,10 @@ const StudentApp: React.FC<StudentAppProps> = ({ user, onLogout }) => {
       if (eventosData.length > 0) {
         setEventoSelecionado(eventosData[0]);
         // Load palestras in background (non-blocking)
-        palestrasApi.listByEvento(eventosData[0].id).then(setPalestrasEvento).catch(console.error);
+        palestrasApi
+          .listByEvento(eventosData[0].id)
+          .then(setPalestrasEvento)
+          .catch(console.error);
       }
     } catch (err: any) {
       setError(err.message || "Erro ao carregar dados");

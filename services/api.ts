@@ -53,7 +53,11 @@ const getCachedUser = async (): Promise<any> => {
 
 // Invalidar cache no logout ou troca de sessão
 supabase.auth.onAuthStateChange((event) => {
-  if (event === "SIGNED_OUT" || event === "TOKEN_REFRESHED" || event === "SIGNED_IN") {
+  if (
+    event === "SIGNED_OUT" ||
+    event === "TOKEN_REFRESHED" ||
+    event === "SIGNED_IN"
+  ) {
     _cachedUser = null;
     _cacheTimestamp = 0;
   }
@@ -1376,16 +1380,25 @@ export const relatoriosApi = {
     }
 
     // Agrupar por palestra
-    const inscricoesByPalestra = new Map<string, { total: number; presentes: number }>();
+    const inscricoesByPalestra = new Map<
+      string,
+      { total: number; presentes: number }
+    >();
     for (const insc of allInscricoes) {
-      const stats = inscricoesByPalestra.get(insc.palestra_id) || { total: 0, presentes: 0 };
+      const stats = inscricoesByPalestra.get(insc.palestra_id) || {
+        total: 0,
+        presentes: 0,
+      };
       stats.total++;
       if (insc.presente) stats.presentes++;
       inscricoesByPalestra.set(insc.palestra_id, stats);
     }
 
     const palestrasStats = palestras.map((palestra: any) => {
-      const stats = inscricoesByPalestra.get(palestra.id) || { total: 0, presentes: 0 };
+      const stats = inscricoesByPalestra.get(palestra.id) || {
+        total: 0,
+        presentes: 0,
+      };
       return {
         id: palestra.id,
         titulo: palestra.titulo,
@@ -1396,7 +1409,9 @@ export const relatoriosApi = {
         inscritos: stats.total,
         presentes: stats.presentes,
         percentual_presenca:
-          stats.total > 0 ? Math.round((stats.presentes / stats.total) * 100) : 0,
+          stats.total > 0
+            ? Math.round((stats.presentes / stats.total) * 100)
+            : 0,
       };
     });
 

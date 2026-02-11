@@ -1,4 +1,11 @@
-import React, { useState, useEffect, useMemo, useRef, Suspense, lazy } from "react";
+import React, {
+  useState,
+  useEffect,
+  useMemo,
+  useRef,
+  Suspense,
+  lazy,
+} from "react";
 import { User, Lecture } from "../types";
 import {
   eventosApi,
