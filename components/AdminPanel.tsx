@@ -596,6 +596,7 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ user, onLogout }) => {
         isOpen={isPresencaModalOpen}
         onClose={() => setIsPresencaModalOpen(false)}
         palestra={selectedPalestra}
+        alunos={alunos}
       />
 
       <LectureDetailsModal

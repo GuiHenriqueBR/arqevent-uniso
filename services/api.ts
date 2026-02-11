@@ -693,6 +693,28 @@ export const inscricoesApi = {
 };
 
 // Presença API - Sistema Avançado com 4 Status
+// Helper: auto-inscrever no evento se não estiver inscrito
+const autoInscreverEvento = async (userId: string, eventoId: string) => {
+  const { data: inscricaoEvento } = await supabase
+    .from("inscricoes_evento")
+    .select("id")
+    .eq("usuario_id", userId)
+    .eq("evento_id", eventoId)
+    .maybeSingle();
+
+  if (!inscricaoEvento) {
+    await supabase
+      .from("inscricoes_evento")
+      .insert({
+        usuario_id: userId,
+        evento_id: eventoId,
+        status: "CONFIRMADA",
+      })
+      .select()
+      .single();
+  }
+};
+
 export const presencaApi = {
   // Registrar presença via QR do projetor (suporta walk-ins)
   registrar: async (palestraId: string, isWalkIn: boolean = false) => {
@@ -734,6 +756,9 @@ export const presencaApi = {
         .single();
 
       if (inscricaoError) throw new Error(inscricaoError.message);
+
+      // Auto-inscrever no evento
+      await autoInscreverEvento(user.id, palestra.evento_id).catch(() => {});
 
       // Enviar notificação de presença confirmada
       await notificacoesApi
@@ -793,6 +818,9 @@ export const presencaApi = {
         local: palestra.sala || "Não definido",
       })
       .catch(() => {});
+
+    // Auto-inscrever no evento caso não esteja
+    await autoInscreverEvento(user.id, palestra.evento_id).catch(() => {});
 
     return { success: true, palestra, isWalkIn: false, status: "PRESENTE" };
   },
@@ -874,6 +902,9 @@ export const presencaApi = {
       })
       .catch(() => {});
 
+    // Auto-inscrever no evento caso não esteja
+    await autoInscreverEvento(user.id, palestra.evento_id).catch(() => {});
+
     return {
       success: true,
       message: "Presença registrada com sucesso!",
@@ -882,6 +913,79 @@ export const presencaApi = {
         carga_horaria: palestra.carga_horaria,
       },
     };
+  },
+
+  // Registrar presença manual (admin) para um aluno específico
+  registrarPresencaManual: async (palestraId: string, alunoId: string) => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) throw new Error("Admin não autenticado");
+
+    // Buscar palestra
+    const { data: palestra } = await supabase
+      .from("palestras")
+      .select("*")
+      .eq("id", palestraId)
+      .single();
+
+    if (!palestra) throw new Error("Palestra/Atividade não encontrada");
+
+    // Verificar se já existe inscrição
+    const { data: inscricao } = await supabase
+      .from("inscricoes_palestra")
+      .select("*")
+      .eq("usuario_id", alunoId)
+      .eq("palestra_id", palestraId)
+      .maybeSingle();
+
+    if (inscricao) {
+      // Já inscrito — verificar se já presente
+      if (inscricao.status_presenca === "PRESENTE" || inscricao.status_presenca === "WALK_IN") {
+        throw new Error("Aluno já possui presença registrada nesta palestra");
+      }
+      // Atualizar para PRESENTE
+      const { error } = await supabase
+        .from("inscricoes_palestra")
+        .update({
+          presente: true,
+          data_presenca: new Date().toISOString(),
+          status_presenca: "PRESENTE",
+          qr_validado_por: user.id,
+        })
+        .eq("id", inscricao.id);
+
+      if (error) throw new Error(error.message);
+    } else {
+      // Criar inscrição walk-in com presença manual
+      const { error } = await supabase
+        .from("inscricoes_palestra")
+        .insert({
+          usuario_id: alunoId,
+          palestra_id: palestraId,
+          presente: true,
+          data_presenca: new Date().toISOString(),
+          status_presenca: "PRESENTE",
+          is_walk_in: true,
+          qr_validado_por: user.id,
+        });
+
+      if (error) throw new Error(error.message);
+    }
+
+    // Auto-inscrever no evento
+    await autoInscreverEvento(alunoId, palestra.evento_id).catch(() => {});
+
+    // Enviar notificação ao aluno
+    await notificacoesApi
+      .enviar(alunoId, "presenca_confirmada", {
+        palestra_id: palestra.id,
+        palestra_titulo: palestra.titulo,
+        data: formatDate(palestra.data_hora_inicio),
+        hora: formatTime(palestra.data_hora_inicio),
+        local: palestra.sala || "Não definido",
+      })
+      .catch(() => {});
+
+    return { success: true };
   },
 
   // Obter presenças com estatísticas avançadas
