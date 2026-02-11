@@ -11,7 +11,7 @@ import {
   CalendarX,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Palestra, Evento, formatCargaHoraria } from "../../services/api";
+import { Palestra, Evento, formatCargaHoraria, parseSemestresPermitidos } from "../../services/api";
 
 interface StudentCalendarProps {
   eventos: Evento[];
@@ -30,16 +30,7 @@ const parseSemestre = (semestre?: string): number | null => {
   return match ? parseInt(match[1]) : null;
 };
 
-// Parse semestres_permitidos JSON string to number array
-const parseSemestresPermitidos = (raw?: string | null): number[] | null => {
-  if (!raw) return null; // null = todos
-  try {
-    const arr = JSON.parse(raw);
-    return Array.isArray(arr) && arr.length > 0 ? arr : null;
-  } catch {
-    return null;
-  }
-};
+// parseSemestresPermitidos importado de api.ts
 
 const formatDate = (dateStr: string): string => {
   return new Date(dateStr).toLocaleDateString("pt-BR", {

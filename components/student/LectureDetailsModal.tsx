@@ -11,7 +11,7 @@ import {
   ChevronRight,
   GraduationCap,
 } from "lucide-react";
-import { Palestra, formatCargaHoraria } from "../../services/api";
+import { Palestra, formatCargaHoraria, parseSemestresPermitidos } from "../../services/api";
 
 interface LectureDetailsModalProps {
   isOpen: boolean;
@@ -39,16 +39,7 @@ const LectureDetailsModal: React.FC<LectureDetailsModalProps> = ({
   const palestranteNome =
     palestra.palestrante_nome || palestra.palestrante?.nome || "Palestrante";
 
-  // Parse semestres
-  const parseSemestresPermitidos = (raw?: string | null): number[] | null => {
-    if (!raw) return null;
-    try {
-      const arr = JSON.parse(raw);
-      return Array.isArray(arr) && arr.length > 0 ? arr : null;
-    } catch {
-      return null;
-    }
-  };
+  // Parse semestres (importado de api.ts)
 
   const parseSemestre = (sem?: string): number | null => {
     if (!sem) return null;

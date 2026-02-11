@@ -146,6 +146,26 @@ export const getCargaHorariaMinutos = (palestra: Palestra): number => {
   return palestra.carga_horaria_minutos ?? palestra.carga_horaria * 60;
 };
 
+// Parse semestres_permitidos JSON string to number array
+export const parseSemestresPermitidos = (
+  raw?: string | null,
+): number[] | null => {
+  if (!raw) return null; // null = todos os semestres
+  try {
+    const arr = JSON.parse(raw);
+    return Array.isArray(arr) && arr.length > 0 ? arr : null;
+  } catch {
+    return null;
+  }
+};
+
+// Formatar semestres para exibição (ex: "1º, 3º, 5º" ou "Todos")
+export const formatSemestres = (raw?: string | null): string => {
+  const semestres = parseSemestresPermitidos(raw);
+  if (!semestres) return "Todos os semestres";
+  return semestres.map((s) => `${s}º`).join(", ");
+};
+
 export interface InscricaoEvento {
   id: string;
   usuario_id: string;

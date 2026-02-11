@@ -45,7 +45,8 @@ const PresencaModal: React.FC<PresencaModalProps> = ({
       // Se a lista de alunos não foi passada, buscar diretamente
       if (alunos.length === 0 && localAlunos.length === 0) {
         setLoadingAlunos(true);
-        usuariosApi.listAlunos()
+        usuariosApi
+          .listAlunos()
           .then((data) => setLocalAlunos(data))
           .catch((err) => console.error("Erro ao carregar alunos:", err))
           .finally(() => setLoadingAlunos(false));
@@ -320,11 +321,13 @@ const PresencaModal: React.FC<PresencaModalProps> = ({
                     </div>
                   )}
 
-                  {searchTerm.length >= 2 && filteredStudents.length === 0 && !loadingAlunos && (
-                    <p className="text-sm text-slate-500 text-center py-2">
-                      Nenhum aluno encontrado (não inscrito nesta palestra)
-                    </p>
-                  )}
+                  {searchTerm.length >= 2 &&
+                    filteredStudents.length === 0 &&
+                    !loadingAlunos && (
+                      <p className="text-sm text-slate-500 text-center py-2">
+                        Nenhum aluno encontrado (não inscrito nesta palestra)
+                      </p>
+                    )}
 
                   {loadingAlunos && (
                     <div className="flex items-center justify-center gap-2 py-3 text-sm text-indigo-600">

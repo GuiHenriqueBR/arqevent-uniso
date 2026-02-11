@@ -1,6 +1,6 @@
 import React from "react";
 import { User } from "../../types";
-import { Evento, Palestra, Aviso } from "../../services/api";
+import { Evento, Palestra, Aviso, formatSemestres, parseSemestresPermitidos } from "../../services/api";
 import {
   Bell,
   RefreshCw,
@@ -24,6 +24,7 @@ import {
   Star,
   ChevronRight,
   Filter,
+  GraduationCap,
 } from "lucide-react";
 import { motion, AnimatePresence, LayoutGroup } from "framer-motion";
 import { AnimatedCard } from "../ui/AnimatedCard";
@@ -770,6 +771,13 @@ const StudentHome: React.FC<StudentHomeProps> = ({
                     {palestra.palestrante_nome || palestra.palestrante?.nome}
                   </p>
 
+                  {parseSemestresPermitidos(palestra.semestres_permitidos) && (
+                    <div className="flex items-center gap-1 text-[10px] text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded self-start font-semibold">
+                      <GraduationCap className="w-3 h-3" />
+                      {formatSemestres(palestra.semestres_permitidos)}
+                    </div>
+                  )}
+
                   <div className="mt-auto flex items-center justify-between border-t border-slate-50 pt-3">
                     <div className="text-xs font-semibold text-slate-400 flex items-center gap-1">
                       <MapPin className="w-3 h-3" />
@@ -920,6 +928,12 @@ const StudentHome: React.FC<StudentHomeProps> = ({
                                 <MapPin className="w-3 h-3" />{" "}
                                 {palestra.sala || "TBD"}
                               </span>
+                              {parseSemestresPermitidos(palestra.semestres_permitidos) && (
+                                <span className="flex items-center gap-1 font-medium text-indigo-500">
+                                  <GraduationCap className="w-3 h-3" />
+                                  {formatSemestres(palestra.semestres_permitidos)}
+                                </span>
+                              )}
 
                               <div className="ml-auto flex gap-2">
                                 {presente ? (

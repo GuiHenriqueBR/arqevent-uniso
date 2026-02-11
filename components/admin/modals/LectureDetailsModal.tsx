@@ -407,7 +407,7 @@ const LectureDetailsModal: React.FC<LectureDetailsModalProps> = ({
                   </div>
 
                   {/* Linhas */}
-                  <div className="divide-y divide-slate-100 max-h-[340px] overflow-y-auto">
+                  <div className="divide-y divide-slate-100 max-h-85 overflow-y-auto">
                     {inscritosFiltrados.map((insc, idx) => {
                       const perfil = insc.profiles || {};
                       return (

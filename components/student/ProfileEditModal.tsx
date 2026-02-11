@@ -77,8 +77,8 @@ const ProfileEditModal: React.FC<ProfileEditModalProps> = ({
 
       const updatedUser = await usuariosApi.update(user.id, {
         nome: formData.nome.trim(),
-        telefone: formData.telefone.trim() || null,
-        semestre: formData.semestre.trim() || null,
+        telefone: formData.telefone.trim() || undefined,
+        semestre: formData.semestre.trim() || undefined,
       });
 
       onSave(updatedUser);

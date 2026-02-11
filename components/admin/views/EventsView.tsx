@@ -19,6 +19,8 @@ import {
   Palestra,
   formatCargaHoraria,
   getCargaHorariaMinutos,
+  formatSemestres,
+  parseSemestresPermitidos,
 } from "../../../services/api";
 import { Button } from "../ui/Button"; // Corrected imports
 import { Badge } from "../ui/Badge";
@@ -555,16 +557,21 @@ const EventsView: React.FC<EventsViewProps> = ({
                             <p className="text-xs text-slate-500 mt-0.5">
                               {formatCargaHoraria(palestra)} de carga horária
                             </p>
-                            <Badge
-                              variant={
-                                tipoLabel === "ATIVIDADE"
-                                  ? "success"
-                                  : "secondary"
-                              }
-                              className="mt-2"
-                            >
-                              {tipoLabel}
-                            </Badge>
+                            <div className="flex flex-wrap gap-1 mt-2">
+                              <Badge
+                                variant={
+                                  tipoLabel === "ATIVIDADE"
+                                    ? "success"
+                                    : "secondary"
+                                }
+                              >
+                                {tipoLabel}
+                              </Badge>
+                              <Badge variant="default" className="text-[10px]">
+                                <GraduationCap className="w-3 h-3 mr-0.5" />
+                                {formatSemestres(palestra.semestres_permitidos)}
+                              </Badge>
+                            </div>
                           </td>
                           <td
                             className="px-6 py-4 text-slate-600 text-sm max-w-50 truncate"
@@ -711,14 +718,19 @@ const EventsView: React.FC<EventsViewProps> = ({
                           {palestra.sala || "Sem sala"} •{" "}
                           {formatCargaHoraria(palestra)}
                         </p>
-                        <Badge
-                          variant={
-                            tipoLabel === "ATIVIDADE" ? "success" : "secondary"
-                          }
-                          className="mt-2"
-                        >
-                          {tipoLabel}
-                        </Badge>
+                        <div className="flex flex-wrap gap-1 mt-2">
+                          <Badge
+                            variant={
+                              tipoLabel === "ATIVIDADE" ? "success" : "secondary"
+                            }
+                          >
+                            {tipoLabel}
+                          </Badge>
+                          <Badge variant="default" className="text-[10px]">
+                            <GraduationCap className="w-3 h-3 mr-0.5" />
+                            {formatSemestres(palestra.semestres_permitidos)}
+                          </Badge>
+                        </div>
                       </div>
                       <Badge
                         variant={
