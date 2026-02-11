@@ -94,6 +94,16 @@ const StudentApp: React.FC<StudentAppProps> = ({ user, onLogout }) => {
   const [detailsPalestra, setDetailsPalestra] = useState<Palestra | null>(null);
   const [detailsOpen, setDetailsOpen] = useState(false);
 
+  // Refresh leve: apenas inscrições (usado após ações do aluno)
+  const refreshInscricoes = useCallback(async () => {
+    try {
+      const inscricoesData = await inscricoesApi.getMinhasInscricoes();
+      setMinhasInscricoes(inscricoesData);
+    } catch (err) {
+      console.error("Erro ao atualizar inscrições:", err);
+    }
+  }, []);
+
   // Load initial data
   useEffect(() => {
     loadData();
@@ -157,8 +167,8 @@ const StudentApp: React.FC<StudentAppProps> = ({ user, onLogout }) => {
 
       if (eventosData.length > 0) {
         setEventoSelecionado(eventosData[0]);
-        const palestras = await palestrasApi.listByEvento(eventosData[0].id);
-        setPalestrasEvento(palestras);
+        // Load palestras in background (non-blocking)
+        palestrasApi.listByEvento(eventosData[0].id).then(setPalestrasEvento).catch(console.error);
       }
     } catch (err: any) {
       setError(err.message || "Erro ao carregar dados");
@@ -171,7 +181,7 @@ const StudentApp: React.FC<StudentAppProps> = ({ user, onLogout }) => {
     try {
       await inscricoesApi.inscreverEvento(eventoId);
       showStatus("success", "Inscrição realizada com sucesso!");
-      loadData();
+      refreshInscricoes();
     } catch (err: any) {
       showStatus("error", err.message);
     }
@@ -182,7 +192,7 @@ const StudentApp: React.FC<StudentAppProps> = ({ user, onLogout }) => {
       await inscricoesApi.inscreverPalestra(palestraId);
       showStatus("success", "Inscrição na palestra/atividade realizada!");
       await handleDownloadComprovanteInscricao(palestraId);
-      loadData();
+      refreshInscricoes();
     } catch (err: any) {
       showStatus("error", err.message);
     }
@@ -249,7 +259,7 @@ const StudentApp: React.FC<StudentAppProps> = ({ user, onLogout }) => {
 
         // After scan success, redirect to home
         setActiveTab("home");
-        loadData();
+        refreshInscricoes();
       } else {
         showStatus("error", "❌ QR Code não reconhecido");
       }

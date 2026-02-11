@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, Suspense, lazy } from "react";
+import React, { useState, useEffect, useMemo, useRef, Suspense, lazy } from "react";
 import { User, Lecture } from "../types";
 import {
   eventosApi,
@@ -108,15 +108,33 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ user, onLogout }) => {
 
   const [modalMode, setModalMode] = useState<"create" | "edit">("create");
 
-  // Initial Data Load
+  // Track which views have been loaded (load-on-first-visit)
+  const loadedViews = useRef<Set<string>>(new Set());
+
+  // Load data only when a view is first visited
   useEffect(() => {
-    loadDashboard();
-    loadEventsAndLectures();
-    loadStudents(); // Can be optimized to load only when view is active, but kept simple
-    loadAnnouncements();
-    loadConfig();
-    loadPalestrantes();
-  }, []);
+    if (loadedViews.current.has(activeView)) return;
+    loadedViews.current.add(activeView);
+
+    switch (activeView) {
+      case "dashboard":
+        loadDashboard();
+        break;
+      case "events":
+        loadEventsAndLectures();
+        loadPalestrantes();
+        break;
+      case "students":
+        loadStudents();
+        break;
+      case "announcements":
+        loadAnnouncements();
+        break;
+      case "settings":
+        loadConfig();
+        break;
+    }
+  }, [activeView]);
 
   const loadDashboard = async () => {
     try {

@@ -29,6 +29,37 @@ const withTimeout = <T>(
 };
 
 // =====================
+// HELPER: Cache de getUser() para evitar chamadas redundantes (~50-150ms cada)
+// =====================
+let _cachedUser: any = null;
+let _cacheTimestamp = 0;
+const USER_CACHE_TTL = 60_000; // 1 minuto
+
+const getCachedUser = async (): Promise<any> => {
+  const now = Date.now();
+  if (_cachedUser && now - _cacheTimestamp < USER_CACHE_TTL) {
+    return _cachedUser;
+  }
+  const {
+    data: { user },
+    error,
+  } = await supabase.auth.getUser();
+  if (error) throw new Error("Erro de autenticação: " + error.message);
+  if (!user) throw new Error("Usuário não autenticado");
+  _cachedUser = user;
+  _cacheTimestamp = now;
+  return user;
+};
+
+// Invalidar cache no logout ou troca de sessão
+supabase.auth.onAuthStateChange((event) => {
+  if (event === "SIGNED_OUT" || event === "TOKEN_REFRESHED" || event === "SIGNED_IN") {
+    _cachedUser = null;
+    _cacheTimestamp = 0;
+  }
+});
+
+// =====================
 // TIPOS BASE
 // =====================
 export type StatusPresenca =
@@ -207,21 +238,7 @@ export const eventosApi = {
   create: async (evento: Partial<Evento>) => {
     console.log("[eventosApi.create] Iniciando criação de evento...");
 
-    const authResult = await withTimeout(supabase.auth.getUser(), 30000);
-    const {
-      data: { user },
-      error: authError,
-    } = authResult;
-
-    if (authError) {
-      console.error("[eventosApi.create] Erro de autenticação:", authError);
-      throw new Error("Erro de autenticação: " + authError.message);
-    }
-
-    if (!user) {
-      console.error("[eventosApi.create] Usuário não autenticado");
-      throw new Error("Usuário não autenticado");
-    }
+    const user = await getCachedUser();
 
     console.log("[eventosApi.create] Usuário autenticado:", user.id);
 
@@ -507,10 +524,7 @@ async function updateEventoCargaHoraria(eventoId: string) {
 // Inscrições API
 export const inscricoesApi = {
   inscreverEvento: async (eventoId: string) => {
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-    if (!user) throw new Error("Usuário não autenticado");
+    const user = await getCachedUser();
 
     // Check if already inscribed
     const { data: existing } = await supabase
@@ -537,10 +551,7 @@ export const inscricoesApi = {
   },
 
   cancelarEvento: async (eventoId: string) => {
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-    if (!user) throw new Error("Usuário não autenticado");
+    const user = await getCachedUser();
 
     // Delete event inscription
     const { error } = await supabase
@@ -570,10 +581,7 @@ export const inscricoesApi = {
   },
 
   inscreverPalestra: async (palestraId: string) => {
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-    if (!user) throw new Error("Usuário não autenticado");
+    const user = await getCachedUser();
 
     // Usar função RPC atômica para evitar race conditions
     const { data, error } = await withTimeout(
@@ -654,10 +662,7 @@ export const inscricoesApi = {
   },
 
   cancelarPalestra: async (palestraId: string) => {
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-    if (!user) throw new Error("Usuário não autenticado");
+    const user = await getCachedUser();
 
     const { error } = await supabase
       .from("inscricoes_palestra")
@@ -670,10 +675,7 @@ export const inscricoesApi = {
   },
 
   getMinhasInscricoes: async () => {
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-    if (!user) throw new Error("Usuário não autenticado");
+    const user = await getCachedUser();
 
     const { data: eventosData } = await supabase
       .from("inscricoes_evento")
@@ -720,10 +722,7 @@ const autoInscreverEvento = async (userId: string, eventoId: string) => {
 export const presencaApi = {
   // Registrar presença via QR do projetor (suporta walk-ins)
   registrar: async (palestraId: string, isWalkIn: boolean = false) => {
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-    if (!user) throw new Error("Usuário não autenticado");
+    const user = await getCachedUser();
 
     // Get palestra
     const { data: palestra } = await supabase
@@ -828,10 +827,7 @@ export const presencaApi = {
   },
 
   validarQrCode: async (qr_hash: string, palestra_id: string) => {
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-    if (!user) throw new Error("Usuário não autenticado");
+    const user = await getCachedUser();
 
     // Get palestra
     const { data: palestra } = await supabase
@@ -919,10 +915,7 @@ export const presencaApi = {
 
   // Registrar presença manual (admin) para um aluno específico
   registrarPresencaManual: async (palestraId: string, alunoId: string) => {
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-    if (!user) throw new Error("Admin não autenticado");
+    const user = await getCachedUser();
 
     // Buscar palestra
     const { data: palestra } = await supabase
@@ -1053,13 +1046,11 @@ export const presencaApi = {
 
   // Atualizar presença manualmente (admin)
   updatePresenca: async (inscricaoId: string, status: StatusPresenca) => {
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
+    const user = await getCachedUser();
 
     const updateData: any = {
       status_presenca: status,
-      qr_validado_por: user?.id,
+      qr_validado_por: user.id,
     };
 
     // Atualizar campo presente também para compatibilidade
@@ -1164,10 +1155,7 @@ function formatTime(dateStr: string): string {
 // Certificados API
 export const certificadosApi = {
   list: async () => {
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-    if (!user) throw new Error("Usuário não autenticado");
+    const user = await getCachedUser();
 
     const { data, error } = await supabase
       .from("certificados")
@@ -1244,38 +1232,46 @@ export const certificadosApi = {
 
     const certificadosGerados = [];
 
+    // Buscar TODOS os certificados existentes para este evento de uma vez (evita N+1)
+    const userIds = Array.from(userHours.keys());
+    const { data: existingCerts } = await supabase
+      .from("certificados")
+      .select("usuario_id")
+      .eq("evento_id", eventoId)
+      .eq("tipo", "PARTICIPACAO")
+      .in("usuario_id", userIds);
+
+    const usersWithCert = new Set(
+      (existingCerts || []).map((c: any) => c.usuario_id),
+    );
+
+    // Gerar certificados apenas para quem ainda não tem
+    const inserts = [];
     for (const [usuarioId, cargaHoraria] of userHours) {
-      // Check if already has certificate
-      const { data: existing } = await supabase
+      if (usersWithCert.has(usuarioId)) continue;
+      inserts.push({
+        usuario_id: usuarioId,
+        evento_id: eventoId,
+        codigo_verificacao: generateCode(),
+        carga_horaria: cargaHoraria,
+        tipo: "PARTICIPACAO",
+      });
+    }
+
+    if (inserts.length > 0) {
+      const { data: certs, error } = await supabase
         .from("certificados")
-        .select("id")
-        .eq("usuario_id", usuarioId)
-        .eq("evento_id", eventoId)
-        .eq("tipo", "PARTICIPACAO")
-        .single();
+        .insert(inserts)
+        .select("*, profiles:usuario_id(nome)");
 
-      if (existing) continue;
-
-      const codigo = generateCode();
-
-      const { data: cert, error } = await supabase
-        .from("certificados")
-        .insert({
-          usuario_id: usuarioId,
-          evento_id: eventoId,
-          codigo_verificacao: codigo,
-          carga_horaria: cargaHoraria,
-          tipo: "PARTICIPACAO",
-        })
-        .select("*, profiles:usuario_id(nome)")
-        .single();
-
-      if (!error && cert) {
-        certificadosGerados.push({
-          certificado_id: cert.id,
-          usuario: (cert as any).profiles?.nome,
-          carga_horaria: cargaHoraria,
-        });
+      if (!error && certs) {
+        for (const cert of certs) {
+          certificadosGerados.push({
+            certificado_id: cert.id,
+            usuario: (cert as any).profiles?.nome,
+            carga_horaria: cert.carga_horaria,
+          });
+        }
       }
     }
 
@@ -1341,52 +1337,68 @@ export const relatoriosApi = {
   },
 
   getEvento: async (eventoId: string) => {
-    const { data: evento } = await supabase
-      .from("eventos")
-      .select("*, profiles:organizador_id(nome)")
-      .eq("id", eventoId)
-      .single();
+    // Buscar evento, palestras, inscritos e certificados em paralelo
+    const [eventoResult, palestrasResult, inscritoResult, certResult] =
+      await Promise.all([
+        supabase
+          .from("eventos")
+          .select("*, profiles:organizador_id(nome)")
+          .eq("id", eventoId)
+          .single(),
+        supabase
+          .from("palestras")
+          .select("*, profiles:palestrante_id(nome)")
+          .eq("evento_id", eventoId),
+        supabase
+          .from("inscricoes_evento")
+          .select("*", { count: "exact", head: true })
+          .eq("evento_id", eventoId),
+        supabase
+          .from("certificados")
+          .select("*", { count: "exact", head: true })
+          .eq("evento_id", eventoId),
+      ]);
 
-    const { data: palestras } = await supabase
-      .from("palestras")
-      .select("*, profiles:palestrante_id(nome)")
-      .eq("evento_id", eventoId);
+    const evento = eventoResult.data;
+    const palestras = palestrasResult.data || [];
+    const totalInscritos = inscritoResult.count;
+    const totalCertificados = certResult.count;
 
-    const { count: totalInscritos } = await supabase
-      .from("inscricoes_evento")
-      .select("*", { count: "exact", head: true })
-      .eq("evento_id", eventoId);
+    // Buscar TODAS as inscrições das palestras do evento em UMA query (evita N+1)
+    const palestraIds = palestras.map((p: any) => p.id);
+    let allInscricoes: any[] = [];
+    if (palestraIds.length > 0) {
+      const { data } = await supabase
+        .from("inscricoes_palestra")
+        .select("palestra_id, presente")
+        .in("palestra_id", palestraIds);
+      allInscricoes = data || [];
+    }
 
-    const { count: totalCertificados } = await supabase
-      .from("certificados")
-      .select("*", { count: "exact", head: true })
-      .eq("evento_id", eventoId);
+    // Agrupar por palestra
+    const inscricoesByPalestra = new Map<string, { total: number; presentes: number }>();
+    for (const insc of allInscricoes) {
+      const stats = inscricoesByPalestra.get(insc.palestra_id) || { total: 0, presentes: 0 };
+      stats.total++;
+      if (insc.presente) stats.presentes++;
+      inscricoesByPalestra.set(insc.palestra_id, stats);
+    }
 
-    // Get presence stats per lecture
-    const palestrasStats = await Promise.all(
-      (palestras || []).map(async (palestra) => {
-        const { data: inscricoes } = await supabase
-          .from("inscricoes_palestra")
-          .select("presente")
-          .eq("palestra_id", palestra.id);
-
-        const total = inscricoes?.length || 0;
-        const presentes = inscricoes?.filter((i) => i.presente).length || 0;
-
-        return {
-          id: palestra.id,
-          titulo: palestra.titulo,
-          palestrante: palestra.profiles?.nome || "Não definido",
-          data_hora: palestra.data_hora_inicio,
-          sala: palestra.sala,
-          vagas: palestra.vagas,
-          inscritos: total,
-          presentes,
-          percentual_presenca:
-            total > 0 ? Math.round((presentes / total) * 100) : 0,
-        };
-      }),
-    );
+    const palestrasStats = palestras.map((palestra: any) => {
+      const stats = inscricoesByPalestra.get(palestra.id) || { total: 0, presentes: 0 };
+      return {
+        id: palestra.id,
+        titulo: palestra.titulo,
+        palestrante: palestra.profiles?.nome || "Não definido",
+        data_hora: palestra.data_hora_inicio,
+        sala: palestra.sala,
+        vagas: palestra.vagas,
+        inscritos: stats.total,
+        presentes: stats.presentes,
+        percentual_presenca:
+          stats.total > 0 ? Math.round((stats.presentes / stats.total) * 100) : 0,
+      };
+    });
 
     return {
       evento: {
@@ -1561,15 +1573,13 @@ export const avisosApi = {
     link_url?: string | null;
     ativo?: boolean;
   }) => {
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
+    const user = await getCachedUser();
 
     const { data, error } = await supabase
       .from("avisos")
       .insert({
         ...aviso,
-        criado_por: user?.id,
+        criado_por: user.id,
         ativo: true,
       })
       .select("*, profiles:criado_por(nome)")
@@ -1854,9 +1864,7 @@ export const configApi = {
   },
 
   set: async (chave: string, valor: string) => {
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
+    const user = await getCachedUser();
 
     const { data, error } = await supabase
       .from("configuracoes")
@@ -1865,7 +1873,7 @@ export const configApi = {
           chave,
           valor,
           updated_at: new Date().toISOString(),
-          updated_by: user?.id,
+          updated_by: user.id,
         },
         { onConflict: "chave" },
       )
@@ -1904,10 +1912,7 @@ export const sistemaApi = {
 export const notificacoesApi = {
   // Listar notificações do usuário logado
   list: async (apenasNaoLidas: boolean = false) => {
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-    if (!user) throw new Error("Usuário não autenticado");
+    const user = await getCachedUser();
 
     let query = supabase
       .from("notificacoes")
@@ -1926,10 +1931,7 @@ export const notificacoesApi = {
 
   // Contar notificações não lidas
   contarNaoLidas: async () => {
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-    if (!user) return 0;
+    const user = await getCachedUser();
 
     const { count, error } = await supabase
       .from("notificacoes")
@@ -1956,10 +1958,7 @@ export const notificacoesApi = {
 
   // Marcar todas como lidas
   marcarTodasComoLidas: async () => {
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-    if (!user) throw new Error("Usuário não autenticado");
+    const user = await getCachedUser();
 
     const { error } = await supabase
       .from("notificacoes")
@@ -1984,10 +1983,7 @@ export const notificacoesApi = {
 
   // Limpar todas as notificações lidas
   limparLidas: async () => {
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-    if (!user) throw new Error("Usuário não autenticado");
+    const user = await getCachedUser();
 
     const { error } = await supabase
       .from("notificacoes")
@@ -2067,16 +2063,14 @@ export const templatesApi = {
       ativo?: boolean;
     },
   ) => {
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
+    const user = await getCachedUser();
 
     const { data, error } = await supabase
       .from("templates_notificacao")
       .update({
         ...updates,
         updated_at: new Date().toISOString(),
-        updated_by: user?.id,
+        updated_by: user.id,
       })
       .eq("tipo", tipo)
       .select()
@@ -2092,16 +2086,14 @@ export const templatesApi = {
     titulo_template: string;
     mensagem_template: string;
   }) => {
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
+    const user = await getCachedUser();
 
     const { data, error } = await supabase
       .from("templates_notificacao")
       .insert({
         ...template,
         ativo: true,
-        updated_by: user?.id,
+        updated_by: user.id,
       })
       .select()
       .single();
@@ -2129,10 +2121,7 @@ export const templatesApi = {
 export const comprovantesApi = {
   // Gerar comprovante de inscrição
   gerarInscricao: async (palestraId: string) => {
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-    if (!user) throw new Error("Usuário não autenticado");
+    const user = await getCachedUser();
 
     // Buscar dados do aluno
     const { data: aluno } = await supabase
@@ -2293,10 +2282,7 @@ export const comprovantesApi = {
 
   // Gerar comprovante de presença confirmada
   gerarPresenca: async (palestraId: string) => {
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-    if (!user) throw new Error("Usuário não autenticado");
+    const user = await getCachedUser();
 
     // Buscar dados do aluno
     const { data: aluno } = await supabase
