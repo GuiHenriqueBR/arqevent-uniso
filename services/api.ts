@@ -484,15 +484,17 @@ export const palestrasApi = {
 async function updateEventoCargaHoraria(eventoId: string) {
   const listPromise = supabase
     .from("palestras")
-    .select("carga_horaria")
+    .select("carga_horaria, carga_horaria_minutos")
     .eq("evento_id", eventoId);
 
   const { data: palestras } = await withTimeout(listPromise, 15000);
 
-  const totalHoras = (palestras || []).reduce(
-    (sum, p) => sum + (p.carga_horaria || 0),
+  const totalMinutos = (palestras || []).reduce(
+    (sum, p) => sum + (p.carga_horaria_minutos ?? (p.carga_horaria || 0) * 60),
     0,
   );
+
+  const totalHoras = Math.ceil(totalMinutos / 60);
 
   const updatePromise = supabase
     .from("eventos")
@@ -866,16 +868,16 @@ export const presencaApi = {
       throw new Error("Presença já registrada anteriormente");
     }
 
-    // Check time window (15 min tolerance)
+    // Check time window (30 min tolerance)
     const now = new Date();
     const inicio = new Date(palestra.data_hora_inicio);
     const fim = new Date(palestra.data_hora_fim);
-    inicio.setMinutes(inicio.getMinutes() - 15);
-    fim.setMinutes(fim.getMinutes() + 15);
+    inicio.setMinutes(inicio.getMinutes() - 30);
+    fim.setMinutes(fim.getMinutes() + 30);
 
     if (now < inicio || now > fim) {
       throw new Error(
-        "QR Code só é válido durante o horário da palestra/atividade (15 min de tolerância)",
+        "QR Code só é válido durante o horário da palestra/atividade (30 min de tolerância)",
       );
     }
 
@@ -1729,6 +1731,7 @@ export const usuariosApi = {
       string,
       {
         palestras_presentes: number;
+        total_inscricoes: number;
         carga_horaria_total: number;
         certificados: number;
       }
@@ -1738,6 +1741,7 @@ export const usuariosApi = {
     for (const id of alunoIds) {
       statsMap.set(id, {
         palestras_presentes: 0,
+        total_inscricoes: 0,
         carga_horaria_total: 0,
         certificados: 0,
       });
@@ -1747,6 +1751,7 @@ export const usuariosApi = {
     for (const insc of todasInscricoes || []) {
       const stats = statsMap.get(insc.usuario_id);
       if (stats) {
+        stats.total_inscricoes++;
         const presente =
           insc.presente ||
           insc.status_presenca === "PRESENTE" ||

@@ -161,7 +161,7 @@ const StudentCalendar: React.FC<StudentCalendarProps> = ({
   const currentPalestras = selectedDay ? palestrasByDay[selectedDay] || [] : [];
 
   const isInscrito = (palestraId: string) =>
-    minhasInscricoes.palestras.some((p: any) => p.id === palestraId);
+    minhasInscricoes.palestras.some((p: any) => p.palestra_id === palestraId);
 
   if (loading) {
     return (

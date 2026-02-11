@@ -47,7 +47,9 @@ const StudentProfile: React.FC<StudentProfileProps> = ({
       .filter((p) => p.presente)
       .reduce(
         (total, p) =>
-          total + (p.carga_horaria_minutos ?? (p.carga_horaria || 1) * 60),
+          total +
+          (p.palestras?.carga_horaria_minutos ??
+            (p.palestras?.carga_horaria || 1) * 60),
         0,
       );
     return totalMinutos;
@@ -214,8 +216,8 @@ const StudentProfile: React.FC<StudentProfileProps> = ({
                           : "Data não registrada"}
                         {" • "}
                         {formatMinutos(
-                          palestra.carga_horaria_minutos ??
-                            (palestra.carga_horaria || 1) * 60,
+                          palestra.palestras?.carga_horaria_minutos ??
+                            (palestra.palestras?.carga_horaria || 1) * 60,
                         )}
                       </p>
                     </div>

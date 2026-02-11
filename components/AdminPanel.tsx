@@ -174,7 +174,12 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ user, onLogout }) => {
         if (!stats) return aluno;
         return {
           ...aluno,
-          presenca: stats.palestras_presentes ? 100 : 0,
+          presenca:
+            stats.total_inscricoes > 0
+              ? Math.round(
+                  (stats.palestras_presentes / stats.total_inscricoes) * 100,
+                )
+              : 0,
           totalPresencas: stats.palestras_presentes || 0,
           cargaHoraria: stats.carga_horaria_total || 0,
           certificados: stats.certificados || 0,
@@ -293,29 +298,43 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ user, onLogout }) => {
   // --- Event Handlers ---
 
   const handleCreateEvento = async (data: any) => {
-    const novo = await eventosApi.create({
-      ...data,
-      data_inicio: new Date(data.data_inicio).toISOString(),
-      data_fim: new Date(data.data_fim).toISOString(),
-    });
-    setEventos([...eventos, novo]);
+    try {
+      const novo = await eventosApi.create({
+        ...data,
+        data_inicio: new Date(data.data_inicio).toISOString(),
+        data_fim: new Date(data.data_fim).toISOString(),
+      });
+      setEventos([...eventos, novo]);
+    } catch (err: any) {
+      alert("Erro ao criar evento: " + err.message);
+      throw err;
+    }
   };
 
   const handleUpdateEvento = async (data: any) => {
     if (!selectedEvento) return;
-    const updated = await eventosApi.update(selectedEvento.id, {
-      ...data,
-      data_inicio: new Date(data.data_inicio).toISOString(),
-      data_fim: new Date(data.data_fim).toISOString(),
-    });
-    setEventos(eventos.map((e) => (e.id === updated.id ? updated : e)));
+    try {
+      const updated = await eventosApi.update(selectedEvento.id, {
+        ...data,
+        data_inicio: new Date(data.data_inicio).toISOString(),
+        data_fim: new Date(data.data_fim).toISOString(),
+      });
+      setEventos(eventos.map((e) => (e.id === updated.id ? updated : e)));
+    } catch (err: any) {
+      alert("Erro ao atualizar evento: " + err.message);
+      throw err;
+    }
   };
 
   const handleDeleteEvento = async (id: string) => {
     if (window.confirm("Excluir evento e todas as palestras associadas?")) {
-      await eventosApi.delete(id);
-      setEventos(eventos.filter((e) => e.id !== id));
-      setPalestras(palestras.filter((p) => p.evento_id !== id));
+      try {
+        await eventosApi.delete(id);
+        setEventos(eventos.filter((e) => e.id !== id));
+        setPalestras(palestras.filter((p) => p.evento_id !== id));
+      } catch (err: any) {
+        alert("Erro ao excluir evento: " + err.message);
+      }
     }
   };
 
@@ -348,24 +367,33 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ user, onLogout }) => {
 
   const handleUpdatePalestra = async (data: any) => {
     if (!selectedPalestra) return;
-    const updated = await palestrasApi.update(selectedPalestra.id, {
-      ...data,
-      tipo: data.tipo || "PALESTRA",
-      data_hora_inicio: new Date(data.data_hora_inicio).toISOString(),
-      data_hora_fim: new Date(data.data_hora_fim).toISOString(),
-      palestrante_id: data.palestrante_id || null,
-      palestrante_nome: data.palestrante_nome?.trim() || null,
-      carga_horaria_minutos: data.carga_horaria_minutos || null,
-      semestres_permitidos: data.semestres_permitidos || null,
-      imagem_url: data.imagem_url?.trim() || null,
-    });
-    setPalestras(palestras.map((p) => (p.id === updated.id ? updated : p)));
+    try {
+      const updated = await palestrasApi.update(selectedPalestra.id, {
+        ...data,
+        tipo: data.tipo || "PALESTRA",
+        data_hora_inicio: new Date(data.data_hora_inicio).toISOString(),
+        data_hora_fim: new Date(data.data_hora_fim).toISOString(),
+        palestrante_id: data.palestrante_id || null,
+        palestrante_nome: data.palestrante_nome?.trim() || null,
+        carga_horaria_minutos: data.carga_horaria_minutos || null,
+        semestres_permitidos: data.semestres_permitidos || null,
+        imagem_url: data.imagem_url?.trim() || null,
+      });
+      setPalestras(palestras.map((p) => (p.id === updated.id ? updated : p)));
+    } catch (err: any) {
+      alert("Erro ao atualizar palestra: " + err.message);
+      throw err;
+    }
   };
 
   const handleDeletePalestra = async (id: string) => {
     if (window.confirm("Excluir palestra/atividade?")) {
-      await palestrasApi.delete(id);
-      setPalestras(palestras.filter((p) => p.id !== id));
+      try {
+        await palestrasApi.delete(id);
+        setPalestras(palestras.filter((p) => p.id !== id));
+      } catch (err: any) {
+        alert("Erro ao excluir palestra: " + err.message);
+      }
     }
   };
 

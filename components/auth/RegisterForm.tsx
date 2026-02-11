@@ -109,8 +109,12 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onLoginClick }) => {
 
       setMessage({
         type: "success",
-        text: "Cadastro realizado com sucesso! Redirecionando...",
+        text: "Cadastro realizado com sucesso! Faça login para continuar.",
       });
+      // Redirecionar para o login após 2 segundos
+      setTimeout(() => {
+        onLoginClick();
+      }, 2000);
     } catch (error: any) {
       let errorText = error.message;
       if (

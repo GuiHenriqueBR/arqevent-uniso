@@ -417,7 +417,7 @@ const EventsView: React.FC<EventsViewProps> = ({
                 </div>
                 <div className="bg-slate-50 rounded-lg p-3 border border-slate-100">
                   <p className="text-xs text-slate-500">Carga horária</p>
-                  <p className="font-semibold">{sumCarga(palestrasOnly)}h</p>
+                  <p className="font-semibold">{sumCarga(palestrasOnly)}</p>
                 </div>
               </div>
               <Button
@@ -449,7 +449,7 @@ const EventsView: React.FC<EventsViewProps> = ({
                 </div>
                 <div className="bg-slate-50 rounded-lg p-3 border border-slate-100">
                   <p className="text-xs text-slate-500">Carga horária</p>
-                  <p className="font-semibold">{sumCarga(atividadesOnly)}h</p>
+                  <p className="font-semibold">{sumCarga(atividadesOnly)}</p>
                 </div>
               </div>
               <Button
@@ -709,7 +709,7 @@ const EventsView: React.FC<EventsViewProps> = ({
                         </p>
                         <p className="text-xs text-slate-500 mt-1">
                           {palestra.sala || "Sem sala"} •{" "}
-                          {palestra.carga_horaria}h
+                          {formatCargaHoraria(palestra)}
                         </p>
                         <Badge
                           variant={

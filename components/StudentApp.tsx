@@ -222,6 +222,7 @@ const StudentApp: React.FC<StudentAppProps> = ({ user, onLogout }) => {
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
+    URL.revokeObjectURL(url);
   };
 
   const handleQrCodeScan = async (qrData: string) => {
@@ -373,14 +374,14 @@ const StudentApp: React.FC<StudentAppProps> = ({ user, onLogout }) => {
         isInscrito={
           detailsPalestra
             ? minhasInscricoes.palestras.some(
-                (p: any) => p.id === detailsPalestra.id,
+                (p: any) => p.palestra_id === detailsPalestra.id,
               )
             : false
         }
         isInscritoEvento={
           detailsPalestra
             ? minhasInscricoes.eventos.some(
-                (e: any) => e.id === detailsPalestra.evento_id,
+                (e: any) => e.evento_id === detailsPalestra.evento_id,
               )
             : false
         }
