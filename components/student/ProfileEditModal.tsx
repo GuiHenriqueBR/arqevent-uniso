@@ -23,6 +23,7 @@ const ProfileEditModal: React.FC<ProfileEditModalProps> = ({
 }) => {
   const [loading, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [nomeError, setNomeError] = useState<string | null>(null);
   const [formData, setFormData] = useState({
     nome: "",
     telefone: "",
@@ -37,8 +38,25 @@ const ProfileEditModal: React.FC<ProfileEditModalProps> = ({
         semestre: user.semestre || "",
       });
       setError(null);
+      setNomeError(null);
     }
   }, [isOpen, user]);
+
+  // Validação de nome completo
+  const validarNome = (valor: string): string | null => {
+    const trimmed = valor.trim();
+    if (!trimmed) return "Nome é obrigatório.";
+    if (trimmed.includes("@")) return "O nome não pode conter email.";
+    if (/\d/.test(trimmed)) return "O nome não pode conter números.";
+    if (!/^[a-zA-ZÀ-ÿ\s'-]+$/.test(trimmed))
+      return "O nome contém caracteres inválidos.";
+    const palavras = trimmed.split(/\s+/).filter((p) => p.length > 0);
+    if (palavras.length < 2)
+      return "Digite seu nome completo (nome e sobrenome).";
+    if (palavras.some((p) => p.length < 2))
+      return "Cada parte do nome deve ter pelo menos 2 letras.";
+    return null;
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -46,9 +64,11 @@ const ProfileEditModal: React.FC<ProfileEditModalProps> = ({
     setError(null);
 
     try {
-      // Validações básicas
-      if (!formData.nome.trim()) {
-        throw new Error("Nome é obrigatório");
+      // Validar nome completo
+      const erroNome = validarNome(formData.nome);
+      if (erroNome) {
+        setNomeError(erroNome);
+        throw new Error(erroNome);
       }
 
       if (formData.telefone && !/^[\d\s\-\(\)]+$/.test(formData.telefone)) {
@@ -117,14 +137,25 @@ const ProfileEditModal: React.FC<ProfileEditModalProps> = ({
               <input
                 type="text"
                 value={formData.nome}
-                onChange={(e) =>
-                  setFormData({ ...formData, nome: e.target.value })
-                }
-                className="w-full pl-10 pr-4 py-2.5 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all"
-                placeholder="Seu nome completo"
+                onChange={(e) => {
+                  setFormData({ ...formData, nome: e.target.value });
+                  if (nomeError) setNomeError(null);
+                }}
+                onBlur={() => {
+                  if (formData.nome.trim()) setNomeError(validarNome(formData.nome));
+                }}
+                className={`w-full pl-10 pr-4 py-2.5 border rounded-xl focus:ring-2 transition-all ${
+                  nomeError
+                    ? "border-red-300 focus:ring-red-500 focus:border-red-500"
+                    : "border-slate-200 focus:ring-indigo-500 focus:border-indigo-500"
+                }`}
+                placeholder="Nome e sobrenome"
                 required
               />
             </div>
+            {nomeError && (
+              <p className="text-xs text-red-500 mt-1">{nomeError}</p>
+            )}
           </div>
 
           {/* Email (readonly) */}

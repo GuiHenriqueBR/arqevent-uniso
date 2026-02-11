@@ -22,6 +22,7 @@ interface RegisterFormProps {
 
 const RegisterForm: React.FC<RegisterFormProps> = ({ onLoginClick }) => {
   const [nome, setNome] = useState("");
+  const [nomeError, setNomeError] = useState<string | null>(null);
   const [ra, setRa] = useState("");
   const [email, setEmail] = useState("");
   const [telefone, setTelefone] = useState("");
@@ -34,6 +35,31 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onLoginClick }) => {
     type: "success" | "error";
     text: string;
   } | null>(null);
+
+  // Validação de nome completo
+  const validarNome = (valor: string): string | null => {
+    const trimmed = valor.trim();
+    if (!trimmed) return "Nome é obrigatório.";
+    if (trimmed.includes("@")) return "O nome não pode conter email.";
+    if (/\d/.test(trimmed)) return "O nome não pode conter números.";
+    if (!/^[a-zA-ZÀ-ÿ\s'-]+$/.test(trimmed))
+      return "O nome contém caracteres inválidos.";
+    const palavras = trimmed.split(/\s+/).filter((p) => p.length > 0);
+    if (palavras.length < 2)
+      return "Digite seu nome completo (nome e sobrenome).";
+    if (palavras.some((p) => p.length < 2))
+      return "Cada parte do nome deve ter pelo menos 2 letras.";
+    return null;
+  };
+
+  const handleNomeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setNome(e.target.value);
+    if (nomeError) setNomeError(null);
+  };
+
+  const handleNomeBlur = () => {
+    if (nome.trim()) setNomeError(validarNome(nome));
+  };
 
   const redirectUrl = useMemo(() => {
     const envUrl = import.meta.env.VITE_SUPABASE_REDIRECT_URL as
@@ -59,8 +85,13 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onLoginClick }) => {
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    // Convert semester to proper value for storage if needed, but here it's likely just stored as string or int
-    // No special changes needed, just validation
+    // Validar nome completo
+    const erroNome = validarNome(nome);
+    if (erroNome) {
+      setNomeError(erroNome);
+      setMessage({ type: "error", text: erroNome });
+      return;
+    }
 
     if (!ra.trim() || !telefone.trim() || !turno || !semestre) {
       setMessage({
@@ -169,11 +200,19 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onLoginClick }) => {
               type="text"
               required
               value={nome}
-              onChange={(e) => setNome(e.target.value)}
-              className="w-full pl-10 pr-4 py-2.5 bg-white border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 shadow-sm transition-all"
-              placeholder="Seu nome"
+              onChange={handleNomeChange}
+              onBlur={handleNomeBlur}
+              className={`w-full pl-10 pr-4 py-2.5 bg-white border rounded-lg focus:outline-none focus:ring-2 shadow-sm transition-all ${
+                nomeError
+                  ? "border-red-300 focus:ring-red-500"
+                  : "border-slate-200 focus:ring-indigo-500"
+              }`}
+              placeholder="Nome e sobrenome"
             />
           </div>
+          {nomeError && (
+            <p className="text-xs text-red-500 ml-1">{nomeError}</p>
+          )}
         </div>
 
         {/* Grid for RA & Telefone */}
