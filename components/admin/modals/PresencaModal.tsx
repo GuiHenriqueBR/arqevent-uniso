@@ -9,7 +9,7 @@ import {
   Search,
   Check,
 } from "lucide-react";
-import { Palestra, presencaApi } from "../../../services/api";
+import { Palestra, presencaApi, usuariosApi } from "../../../services/api";
 
 interface PresencaModalProps {
   isOpen: boolean;
@@ -35,9 +35,21 @@ const PresencaModal: React.FC<PresencaModalProps> = ({
   const [addSuccess, setAddSuccess] = useState<string | null>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
 
+  // Lista de alunos local (carrega automaticamente se a prop vier vazia)
+  const [localAlunos, setLocalAlunos] = useState<any[]>([]);
+  const [loadingAlunos, setLoadingAlunos] = useState(false);
+
   useEffect(() => {
     if (isOpen && palestra) {
       loadPresencas();
+      // Se a lista de alunos não foi passada, buscar diretamente
+      if (alunos.length === 0 && localAlunos.length === 0) {
+        setLoadingAlunos(true);
+        usuariosApi.listAlunos()
+          .then((data) => setLocalAlunos(data))
+          .catch((err) => console.error("Erro ao carregar alunos:", err))
+          .finally(() => setLoadingAlunos(false));
+      }
     } else {
       setData(null);
       setError(null);
@@ -129,6 +141,9 @@ const PresencaModal: React.FC<PresencaModalProps> = ({
     URL.revokeObjectURL(link.href);
   };
 
+  // Usar alunos da prop ou a lista local carregada automaticamente
+  const todosAlunos = alunos.length > 0 ? alunos : localAlunos;
+
   // IDs dos alunos já inscritos nesta palestra
   const alunosInscritos = new Set(
     data?.presencas?.map((p: any) => p.profiles?.id || p.usuario_id) || [],
@@ -137,7 +152,7 @@ const PresencaModal: React.FC<PresencaModalProps> = ({
   // Filtra alunos disponíveis para adicionar (não inscritos + match na busca)
   const filteredStudents =
     searchTerm.length >= 2
-      ? alunos
+      ? todosAlunos
           .filter((a) => !alunosInscritos.has(a.id))
           .filter(
             (a) =>
@@ -305,10 +320,17 @@ const PresencaModal: React.FC<PresencaModalProps> = ({
                     </div>
                   )}
 
-                  {searchTerm.length >= 2 && filteredStudents.length === 0 && (
+                  {searchTerm.length >= 2 && filteredStudents.length === 0 && !loadingAlunos && (
                     <p className="text-sm text-slate-500 text-center py-2">
                       Nenhum aluno encontrado (não inscrito nesta palestra)
                     </p>
+                  )}
+
+                  {loadingAlunos && (
+                    <div className="flex items-center justify-center gap-2 py-3 text-sm text-indigo-600">
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      Carregando lista de alunos...
+                    </div>
                   )}
 
                   {filteredStudents.length > 0 && (

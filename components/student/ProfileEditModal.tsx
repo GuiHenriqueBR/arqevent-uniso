@@ -142,7 +142,8 @@ const ProfileEditModal: React.FC<ProfileEditModalProps> = ({
                   if (nomeError) setNomeError(null);
                 }}
                 onBlur={() => {
-                  if (formData.nome.trim()) setNomeError(validarNome(formData.nome));
+                  if (formData.nome.trim())
+                    setNomeError(validarNome(formData.nome));
                 }}
                 className={`w-full pl-10 pr-4 py-2.5 border rounded-xl focus:ring-2 transition-all ${
                   nomeError
