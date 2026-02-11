@@ -566,7 +566,7 @@ const StudentsView: React.FC<StudentsViewProps> = ({
                             insc.status_presenca === "PRESENTE"
                               ? "✓ Presente"
                               : insc.status_presenca === "WALK_IN"
-                                ? "✓ Walk-in"
+                                ? "✓ Avulso"
                                 : insc.status_presenca === "ATRASADO"
                                   ? "⏰ Atrasado"
                                   : insc.status_presenca === "AUSENTE"

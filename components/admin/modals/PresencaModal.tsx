@@ -423,7 +423,7 @@ const PresencaModal: React.FC<PresencaModalProps> = ({
                                 <option value="AUSENTE">Ausente</option>
                                 <option value="ATRASADO">Atrasado</option>
                                 <option value="JUSTIFICADO">Justificado</option>
-                                <option value="WALK_IN">Walk-in</option>
+                                <option value="WALK_IN">Avulso</option>
                               </select>
                             </td>
                           </tr>

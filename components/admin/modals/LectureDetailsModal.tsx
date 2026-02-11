@@ -122,7 +122,7 @@ const LectureDetailsModal: React.FC<LectureDetailsModalProps> = ({
       case "WALK_IN":
         return (
           <span className="inline-flex items-center gap-1 px-2 py-0.5 text-xs font-medium rounded-full bg-blue-50 text-blue-700 border border-blue-200">
-            <UserPlus className="w-3 h-3" /> Walk-in
+            <UserPlus className="w-3 h-3" /> Avulso
           </span>
         );
       case "ATRASADO":
@@ -342,7 +342,7 @@ const LectureDetailsModal: React.FC<LectureDetailsModalProps> = ({
                     <p className="text-lg font-bold text-blue-700">
                       {estatisticas.walk_ins}
                     </p>
-                    <p className="text-xs text-blue-600">Walk-ins</p>
+                    <p className="text-xs text-blue-600">Avulsos</p>
                   </div>
                 </div>
               )}
@@ -368,7 +368,7 @@ const LectureDetailsModal: React.FC<LectureDetailsModalProps> = ({
                   <option value="INSCRITO">Inscritos</option>
                   <option value="PRESENTE">Presentes</option>
                   <option value="AUSENTE">Ausentes</option>
-                  <option value="WALK_IN">Walk-ins</option>
+                  <option value="WALK_IN">Avulsos</option>
                 </select>
                 <button
                   onClick={handleExportCSV}

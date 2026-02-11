@@ -724,7 +724,7 @@ const autoInscreverEvento = async (userId: string, eventoId: string) => {
 };
 
 export const presencaApi = {
-  // Registrar presença via QR do projetor (suporta walk-ins)
+  // Registrar presença via QR do projetor (suporta avulsos)
   registrar: async (palestraId: string, isWalkIn: boolean = false) => {
     const user = await getCachedUser();
 
@@ -746,7 +746,7 @@ export const presencaApi = {
       .single();
 
     if (!inscricao) {
-      // Walk-in: não estava inscrito, criar inscrição com status WALK_IN
+      // Avulso: não estava inscrito, criar inscrição com status WALK_IN
       const { data: novaInscricao, error: inscricaoError } = await supabase
         .from("inscricoes_palestra")
         .insert({
@@ -855,7 +855,7 @@ export const presencaApi = {
       .eq("palestra_id", palestra_id)
       .single();
 
-    // Se não existe inscrição, criar como walk-in
+    // Se não existe inscrição, criar como avulso
     if (!inscricao) {
       return presencaApi.registrar(palestra_id, true);
     }
@@ -959,7 +959,7 @@ export const presencaApi = {
 
       if (error) throw new Error(error.message);
     } else {
-      // Criar inscrição walk-in com presença manual
+      // Criar inscrição avulsa com presença manual
       const { error } = await supabase.from("inscricoes_palestra").insert({
         usuario_id: alunoId,
         palestra_id: palestraId,
@@ -1033,7 +1033,7 @@ export const presencaApi = {
         inscritos_pendentes: inscritos, // Ainda não confirmaram presença
         presentes, // Inscritos que confirmaram presença
         ausentes, // Marcados como ausentes
-        walk_ins: walkIns, // Não estavam inscritos mas compareceram
+        walk_ins: walkIns, // Avulsos: compareceram sem inscrição prévia
         total_compareceram: presentes + walkIns,
         percentual_presenca:
           inscritos + presentes + ausentes > 0
