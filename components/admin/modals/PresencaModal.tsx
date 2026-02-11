@@ -53,7 +53,12 @@ const PresencaModal: React.FC<PresencaModalProps> = ({
     setError(null);
     try {
       const result = await presencaApi.getPresencasPalestra(palestra.id);
-      setData(result);
+      // Normalizar nomes dos campos para uso no modal
+      setData({
+        palestra: result.palestra,
+        stats: result.estatisticas,
+        presencas: result.inscricoes,
+      });
     } catch (err: any) {
       console.error("Erro ao carregar presenças:", err);
       setError("Não foi possível carregar a lista de presença.");
@@ -81,7 +86,11 @@ const PresencaModal: React.FC<PresencaModalProps> = ({
 
       // Reload stats in background to keep consistent
       const result = await presencaApi.getPresencasPalestra(palestra.id);
-      setData(result);
+      setData({
+        palestra: result.palestra,
+        stats: result.estatisticas,
+        presencas: result.inscricoes,
+      });
     } catch (err: any) {
       alert("Erro ao atualizar presença: " + err.message);
       loadPresencas(); // Revert on error
@@ -217,7 +226,7 @@ const PresencaModal: React.FC<PresencaModalProps> = ({
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 mb-6">
                 <div className="bg-slate-50 p-3 sm:p-4 rounded-xl text-center border border-slate-100">
                   <p className="text-xl sm:text-2xl font-bold text-slate-800">
-                    {data.stats?.total || 0}
+                    {data.stats?.total_registros || 0}
                   </p>
                   <p className="text-[10px] sm:text-xs text-slate-500 font-bold uppercase tracking-wider">
                     Total Inscritos
@@ -257,10 +266,7 @@ const PresencaModal: React.FC<PresencaModalProps> = ({
                     setSearchTerm("");
                     setAddSuccess(null);
                     if (!showAddStudent) {
-                      setTimeout(
-                        () => searchInputRef.current?.focus(),
-                        100,
-                      );
+                      setTimeout(() => searchInputRef.current?.focus(), 100);
                     }
                   }}
                   className="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition-colors flex items-center gap-2 shadow-sm text-sm font-medium"
@@ -310,9 +316,7 @@ const PresencaModal: React.FC<PresencaModalProps> = ({
                       {filteredStudents.map((aluno) => (
                         <button
                           key={aluno.id}
-                          onClick={() =>
-                            handleAddStudent(aluno.id, aluno.nome)
-                          }
+                          onClick={() => handleAddStudent(aluno.id, aluno.nome)}
                           disabled={addingStudentId === aluno.id}
                           className="w-full flex items-center justify-between gap-3 px-4 py-3 hover:bg-indigo-50 transition-colors text-left disabled:opacity-50"
                         >
@@ -325,9 +329,7 @@ const PresencaModal: React.FC<PresencaModalProps> = ({
                                 {aluno.nome}
                               </p>
                               <p className="text-xs text-slate-500 truncate">
-                                {aluno.ra
-                                  ? `RA: ${aluno.ra}`
-                                  : aluno.email}
+                                {aluno.ra ? `RA: ${aluno.ra}` : aluno.email}
                               </p>
                             </div>
                           </div>

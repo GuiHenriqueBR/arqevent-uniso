@@ -917,7 +917,9 @@ export const presencaApi = {
 
   // Registrar presença manual (admin) para um aluno específico
   registrarPresencaManual: async (palestraId: string, alunoId: string) => {
-    const { data: { user } } = await supabase.auth.getUser();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
     if (!user) throw new Error("Admin não autenticado");
 
     // Buscar palestra
@@ -939,7 +941,10 @@ export const presencaApi = {
 
     if (inscricao) {
       // Já inscrito — verificar se já presente
-      if (inscricao.status_presenca === "PRESENTE" || inscricao.status_presenca === "WALK_IN") {
+      if (
+        inscricao.status_presenca === "PRESENTE" ||
+        inscricao.status_presenca === "WALK_IN"
+      ) {
         throw new Error("Aluno já possui presença registrada nesta palestra");
       }
       // Atualizar para PRESENTE
@@ -956,17 +961,15 @@ export const presencaApi = {
       if (error) throw new Error(error.message);
     } else {
       // Criar inscrição walk-in com presença manual
-      const { error } = await supabase
-        .from("inscricoes_palestra")
-        .insert({
-          usuario_id: alunoId,
-          palestra_id: palestraId,
-          presente: true,
-          data_presenca: new Date().toISOString(),
-          status_presenca: "PRESENTE",
-          is_walk_in: true,
-          qr_validado_por: user.id,
-        });
+      const { error } = await supabase.from("inscricoes_palestra").insert({
+        usuario_id: alunoId,
+        palestra_id: palestraId,
+        presente: true,
+        data_presenca: new Date().toISOString(),
+        status_presenca: "PRESENTE",
+        is_walk_in: true,
+        qr_validado_por: user.id,
+      });
 
       if (error) throw new Error(error.message);
     }
