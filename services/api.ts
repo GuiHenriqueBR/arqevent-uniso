@@ -2842,4 +2842,52 @@ export const comprovantesApi = {
       blob: pdfBlob,
     };
   },
+
+  // Gerar certificados de todos os alunos em um ZIP
+  gerarCertificadosTodosAlunos: async (
+    alunos: { id: string; nome?: string; ra?: string }[],
+    onProgress?: (atual: number, total: number, nome: string) => void,
+  ) => {
+    const JSZip = (await import("jszip")).default;
+    const zip = new JSZip();
+
+    let gerados = 0;
+    let pulados = 0;
+    const erros: { nome: string; erro: string }[] = [];
+
+    for (let i = 0; i < alunos.length; i++) {
+      const aluno = alunos[i];
+      const nomeAluno = aluno.nome || "Aluno";
+      onProgress?.(i + 1, alunos.length, nomeAluno);
+
+      try {
+        const result = await comprovantesApi.gerarCertificadoAluno(aluno.id);
+        zip.file(result.filename, result.blob);
+        URL.revokeObjectURL(result.url);
+        gerados++;
+      } catch (err: any) {
+        const msg = err?.message || "Erro desconhecido";
+        if (msg.includes("nenhuma presença confirmada")) {
+          pulados++;
+        } else {
+          erros.push({ nome: nomeAluno, erro: msg });
+        }
+      }
+    }
+
+    if (gerados === 0) {
+      throw new Error("Nenhum certificado gerado. Nenhum aluno possui presença confirmada.");
+    }
+
+    const zipBlob = await zip.generateAsync({ type: "blob" });
+    const zipUrl = URL.createObjectURL(zipBlob);
+    const dataStr = new Date().toISOString().slice(0, 10);
+
+    return {
+      url: zipUrl,
+      filename: `certificados_todos_alunos_${dataStr}.zip`,
+      blob: zipBlob,
+      resumo: { gerados, pulados, erros },
+    };
+  },
 };

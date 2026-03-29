@@ -46,6 +46,8 @@ const StudentsView: React.FC<StudentsViewProps> = ({
   const [removingInscricaoId, setRemovingInscricaoId] = useState<string | null>(null);
   const [confirmRemoveId, setConfirmRemoveId] = useState<string | null>(null);
   const [gerandoCertificado, setGerandoCertificado] = useState(false);
+  const [gerandoTodosCertificados, setGerandoTodosCertificados] = useState(false);
+  const [progressoCertificados, setProgressoCertificados] = useState<{ atual: number; total: number; nome: string } | null>(null);
 
   // Carregar inscrições quando um aluno for selecionado
   useEffect(() => {
@@ -129,6 +131,35 @@ const StudentsView: React.FC<StudentsViewProps> = ({
     }
   };
 
+  const handleGerarTodosCertificados = async () => {
+    if (filteredStudents.length === 0) return;
+    setGerandoTodosCertificados(true);
+    setProgressoCertificados({ atual: 0, total: filteredStudents.length, nome: "" });
+    try {
+      const result = await comprovantesApi.gerarCertificadosTodosAlunos(
+        filteredStudents,
+        (atual, total, nome) => setProgressoCertificados({ atual, total, nome }),
+      );
+      const link = document.createElement("a");
+      link.href = result.url;
+      link.download = result.filename;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(result.url);
+      const { gerados, pulados, erros } = result.resumo;
+      let msg = `${gerados} certificado(s) gerado(s)`;
+      if (pulados > 0) msg += `\n${pulados} aluno(s) sem presença (ignorados)`;
+      if (erros.length > 0) msg += `\n${erros.length} erro(s): ${erros.map(e => e.nome).join(", ")}`;
+      alert(msg);
+    } catch (err: any) {
+      alert(err.message || "Erro ao gerar certificados");
+    } finally {
+      setGerandoTodosCertificados(false);
+      setProgressoCertificados(null);
+    }
+  };
+
   const handleEmitirCertificado = async (student: any) => {
     setGerandoCertificado(true);
     try {
@@ -191,13 +222,29 @@ const StudentsView: React.FC<StudentsViewProps> = ({
             {alunos.length} alunos no total • {filteredStudents.length} exibidos
           </p>
         </div>
-        <button
-          onClick={onExportCSV}
-          disabled={filteredStudents.length === 0}
-          className="bg-white border border-slate-200 text-slate-600 px-4 py-2 rounded-lg hover:bg-slate-50 transition-colors flex items-center gap-2 shadow-sm disabled:opacity-50"
-        >
-          <Download className="w-4 h-4" /> Exportar Planilha
-        </button>
+        <div className="flex flex-col sm:flex-row gap-2">
+          <button
+            onClick={handleGerarTodosCertificados}
+            disabled={filteredStudents.length === 0 || gerandoTodosCertificados}
+            className="bg-amber-600 text-white px-4 py-2 rounded-lg hover:bg-amber-700 transition-colors flex items-center gap-2 shadow-sm disabled:opacity-50"
+          >
+            {gerandoTodosCertificados ? (
+              <Loader2 className="w-4 h-4 animate-spin" />
+            ) : (
+              <Award className="w-4 h-4" />
+            )}
+            {gerandoTodosCertificados
+              ? `Gerando... (${progressoCertificados?.atual || 0}/${progressoCertificados?.total || 0})`
+              : "Gerar Todos Certificados"}
+          </button>
+          <button
+            onClick={onExportCSV}
+            disabled={filteredStudents.length === 0}
+            className="bg-white border border-slate-200 text-slate-600 px-4 py-2 rounded-lg hover:bg-slate-50 transition-colors flex items-center gap-2 shadow-sm disabled:opacity-50"
+          >
+            <Download className="w-4 h-4" /> Exportar Planilha
+          </button>
+        </div>
       </div>
 
       <div className="bg-white rounded-xl shadow-sm overflow-hidden border border-slate-100">
