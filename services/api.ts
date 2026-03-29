@@ -2631,4 +2631,215 @@ export const comprovantesApi = {
       blob: pdfBlob,
     };
   },
+
+  // Gerar certificado consolidado de um aluno (Admin)
+  gerarCertificadoAluno: async (alunoId: string) => {
+    // Buscar dados do aluno
+    const { data: aluno, error: alunoError } = await supabase
+      .from("profiles")
+      .select("*")
+      .eq("id", alunoId)
+      .single();
+
+    if (alunoError || !aluno) throw new Error("Aluno não encontrado");
+
+    // Buscar todas as inscrições com presença confirmada
+    const { data: inscricoes, error: inscError } = await supabase
+      .from("inscricoes_palestra")
+      .select("*, palestras(id, titulo, carga_horaria, data_hora_inicio, data_hora_fim, sala, tipo, eventos(titulo))")
+      .eq("usuario_id", alunoId)
+      .eq("presente", true)
+      .order("data_inscricao", { ascending: true });
+
+    if (inscError) throw new Error("Erro ao buscar presenças do aluno");
+
+    const presencas = inscricoes || [];
+    if (presencas.length === 0) throw new Error("Este aluno não possui nenhuma presença confirmada");
+
+    // Calcular carga horária total
+    const cargaHorariaTotal = presencas.reduce(
+      (sum: number, insc: any) => sum + ((insc.palestras as any)?.carga_horaria || 0),
+      0,
+    );
+
+    // Buscar configurações da instituição
+    const nomeInstituicao =
+      (await configApi.get("nome_instituicao")) ||
+      "Universidade de Sorocaba - UNISO";
+
+    // Gerar PDF
+    const jsPDF = await loadJsPDF();
+    const doc = new jsPDF({
+      orientation: "portrait",
+      unit: "mm",
+      format: "a4",
+    });
+
+    // --- Header institucional (azul escuro + dourado) ---
+    doc.setFillColor(30, 58, 95);
+    doc.rect(0, 0, 210, 45, "F");
+    // Faixa dourada decorativa
+    doc.setFillColor(212, 175, 55);
+    doc.rect(0, 45, 210, 3, "F");
+
+    doc.setTextColor(255, 255, 255);
+    doc.setFontSize(20);
+    doc.setFont("helvetica", "bold");
+    doc.text(nomeInstituicao, 105, 20, { align: "center" });
+    doc.setFontSize(14);
+    doc.setFont("helvetica", "normal");
+    doc.text("Certificado de Participação", 105, 35, { align: "center" });
+
+    // --- Título ---
+    doc.setTextColor(30, 58, 95);
+    doc.setFontSize(18);
+    doc.setFont("helvetica", "bold");
+    doc.text("CERTIFICADO DE PARTICIPAÇÃO", 105, 65, { align: "center" });
+
+    // --- Faixa dourada fina ---
+    doc.setFillColor(212, 175, 55);
+    doc.rect(60, 70, 90, 1, "F");
+
+    // --- Corpo do texto ---
+    doc.setTextColor(0, 0, 0);
+    doc.setFontSize(12);
+    doc.setFont("helvetica", "normal");
+
+    const textoIntro = `Certificamos que ${aluno.nome || "—"}, RA ${aluno.ra || "—"}, participou das seguintes atividades acadêmicas com presença confirmada:`;
+    const linhasIntro = doc.splitTextToSize(textoIntro, 170);
+    doc.text(linhasIntro, 20, 85);
+
+    // --- Tabela de atividades ---
+    let y = 85 + linhasIntro.length * 7 + 10;
+
+    // Cabeçalho da tabela
+    doc.setFillColor(240, 242, 245);
+    doc.rect(15, y - 5, 180, 10, "F");
+    doc.setFontSize(9);
+    doc.setFont("helvetica", "bold");
+    doc.setTextColor(60, 60, 60);
+    doc.text("Evento", 18, y + 1);
+    doc.text("Palestra / Atividade", 68, y + 1);
+    doc.text("Data", 145, y + 1);
+    doc.text("Horas", 180, y + 1);
+    y += 10;
+
+    // Linhas da tabela
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(8.5);
+    doc.setTextColor(0, 0, 0);
+
+    const pageHeight = 297;
+    const bottomMargin = 50; // reservar espaço para rodapé
+
+    for (let i = 0; i < presencas.length; i++) {
+      const insc = presencas[i];
+      const pal = insc.palestras as any;
+
+      // Verificar se precisa nova página
+      if (y + 12 > pageHeight - bottomMargin) {
+        // Rodapé da página intermediária
+        doc.setTextColor(180, 180, 180);
+        doc.setFontSize(7);
+        doc.text(`Página ${doc.getNumberOfPages()}`, 105, pageHeight - 10, { align: "center" });
+
+        doc.addPage();
+        y = 25;
+
+        // Cabeçalho da tabela na nova página
+        doc.setFillColor(240, 242, 245);
+        doc.rect(15, y - 5, 180, 10, "F");
+        doc.setFontSize(9);
+        doc.setFont("helvetica", "bold");
+        doc.setTextColor(60, 60, 60);
+        doc.text("Evento", 18, y + 1);
+        doc.text("Palestra / Atividade", 68, y + 1);
+        doc.text("Data", 145, y + 1);
+        doc.text("Horas", 180, y + 1);
+        y += 10;
+
+        doc.setFont("helvetica", "normal");
+        doc.setFontSize(8.5);
+        doc.setTextColor(0, 0, 0);
+      }
+
+      // Fundo alternado
+      if (i % 2 === 0) {
+        doc.setFillColor(250, 250, 252);
+        doc.rect(15, y - 4, 180, 9, "F");
+      }
+
+      const evento = pal?.eventos?.titulo || "—";
+      const titulo = pal?.titulo || "—";
+      const data = pal?.data_hora_inicio ? formatDate(pal.data_hora_inicio) : "—";
+      const horas = `${pal?.carga_horaria || 0}h`;
+
+      // Truncar textos longos
+      const eventoTrunc = doc.splitTextToSize(evento, 47)[0];
+      const tituloTrunc = doc.splitTextToSize(titulo, 72)[0];
+
+      doc.text(eventoTrunc, 18, y + 1);
+      doc.text(tituloTrunc, 68, y + 1);
+      doc.text(data, 145, y + 1);
+      doc.text(horas, 183, y + 1, { align: "center" });
+
+      y += 9;
+    }
+
+    // --- Linha divisória ---
+    y += 5;
+    doc.setDrawColor(212, 175, 55);
+    doc.setLineWidth(0.5);
+    doc.line(15, y, 195, y);
+    y += 10;
+
+    // --- Box de carga horária total ---
+    doc.setFillColor(30, 58, 95);
+    doc.roundedRect(50, y, 110, 22, 3, 3, "F");
+    doc.setTextColor(255, 255, 255);
+    doc.setFontSize(11);
+    doc.setFont("helvetica", "normal");
+    doc.text("Carga Horária Total", 105, y + 9, { align: "center" });
+    doc.setFontSize(18);
+    doc.setFont("helvetica", "bold");
+    doc.text(`${cargaHorariaTotal} hora(s)`, 105, y + 19, { align: "center" });
+
+    // --- Rodapé ---
+    const codigoVerificacao = `CERT-${new Date().getFullYear()}-${alunoId.substring(0, 8).toUpperCase()}`;
+
+    doc.setTextColor(128, 128, 128);
+    doc.setFontSize(8);
+    doc.text(
+      `Documento gerado em ${new Date().toLocaleString("pt-BR")}`,
+      105,
+      270,
+      { align: "center" },
+    );
+    doc.text(
+      `${presencas.length} atividade(s) com presença confirmada`,
+      105,
+      275,
+      { align: "center" },
+    );
+    doc.text(
+      `Código de verificação: ${codigoVerificacao}`,
+      105,
+      280,
+      { align: "center" },
+    );
+
+    // Faixa dourada no rodapé
+    doc.setFillColor(212, 175, 55);
+    doc.rect(0, 294, 210, 3, "F");
+
+    // Retornar PDF
+    const pdfBlob = doc.output("blob");
+    const pdfUrl = URL.createObjectURL(pdfBlob);
+
+    return {
+      url: pdfUrl,
+      filename: `certificado_${(aluno.nome || "aluno").replace(/\s+/g, "_")}_${aluno.ra || ""}.pdf`,
+      blob: pdfBlob,
+    };
+  },
 };

@@ -13,8 +13,9 @@ import {
   Loader2,
   Edit,
   Trash2,
+  Award,
 } from "lucide-react";
-import { usuariosApi } from "../../../services/api";
+import { usuariosApi, comprovantesApi } from "../../../services/api";
 import UserEditModal from "../modals/UserEditModal";
 
 interface StudentsViewProps {
@@ -44,6 +45,7 @@ const StudentsView: React.FC<StudentsViewProps> = ({
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
   const [removingInscricaoId, setRemovingInscricaoId] = useState<string | null>(null);
   const [confirmRemoveId, setConfirmRemoveId] = useState<string | null>(null);
+  const [gerandoCertificado, setGerandoCertificado] = useState(false);
 
   // Carregar inscrições quando um aluno for selecionado
   useEffect(() => {
@@ -124,6 +126,24 @@ const StudentsView: React.FC<StudentsViewProps> = ({
       alert("Erro ao remover inscrição: " + err.message);
     } finally {
       setRemovingInscricaoId(null);
+    }
+  };
+
+  const handleEmitirCertificado = async (student: any) => {
+    setGerandoCertificado(true);
+    try {
+      const result = await comprovantesApi.gerarCertificadoAluno(student.id);
+      const link = document.createElement("a");
+      link.href = result.url;
+      link.download = result.filename;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(result.url);
+    } catch (err: any) {
+      alert(err.message || "Erro ao gerar certificado");
+    } finally {
+      setGerandoCertificado(false);
     }
   };
 
@@ -692,7 +712,20 @@ const StudentsView: React.FC<StudentsViewProps> = ({
                   ? "Confirmar Exclusão"
                   : "Excluir Aluno"}
               </button>
-              <div className="flex gap-3">
+              <div className="flex flex-wrap gap-3">
+                <button
+                  onClick={() => handleEmitirCertificado(selectedStudent)}
+                  disabled={gerandoCertificado || !(selectedStudent.cargaHoraria > 0)}
+                  className="flex items-center justify-center gap-2 px-4 py-2 bg-amber-600 text-white rounded-lg text-sm font-medium hover:bg-amber-700 transition-colors shadow-sm disabled:opacity-50"
+                  title={!(selectedStudent.cargaHoraria > 0) ? "Aluno não possui presenças confirmadas" : "Gerar certificado em PDF"}
+                >
+                  {gerandoCertificado ? (
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                  ) : (
+                    <Award className="w-4 h-4" />
+                  )}
+                  {gerandoCertificado ? "Gerando..." : "Emitir Certificado"}
+                </button>
                 <button
                   onClick={() => {
                     setEditingStudent(selectedStudent);
